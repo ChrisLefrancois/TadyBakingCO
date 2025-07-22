@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 
 import itemRoutes from './routes/items.js';
-import orderRoutes from './routes/orders.js';
+import orderRoutes from './routes/ordersRoutes.js';
 
 dotenv.config();
 
