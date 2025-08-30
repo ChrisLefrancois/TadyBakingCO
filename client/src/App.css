@@ -2,7 +2,7 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-
+  background-color: #fbf1e5;
 }
 
 .main-container {
@@ -13,5 +13,5 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #f0d8cc; /* your background color */
+  background-color: #fbf1e5; /* your background color */
 }

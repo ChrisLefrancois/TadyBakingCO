@@ -1,51 +1,130 @@
-import React from 'react';
+import React from "react";
+import { Link } from "react-router-dom";
+import ItemCard from "../components/itemCard";
 
 export default function LandingPage() {
+  const products = [
+    {
+      id: 1,
+      title: "B.B.C.C. (Brown Butter Choc Chip)",
+      description: "",
+      price: 5.99,
+      img: "/images/bbcc.png", // replace with your actual images
+    },
+    {
+      id: 2,
+      title: "B.B.B.T. (Brown Butter Butter Tart)",
+      description: "",
+      price: 5.99,
+      img: "/images/bbbt.png", // replace with your actual images
+    },
+
+  ];
+
   return (
-    <div className="main-container items-center bg-[#f0d8cc]">
-      {/* Header */}
-      <header className="w-full bg-[#9c6f5a] text-white py-6 px-4 text-center">
-        <h1 className="text-4xl font-bold tracking-wide">TADY BAKING CO</h1>
-      </header>
+    <div className="bg-[##fbf1e5] min-h-screen flex flex-col items-center font-sans">
 
-      {/* Main section: fills remaining space */}
-      <main className="flex-1 flex flex-col items-center justify-between py-10 px-4">
-        {/* Top Bubbles */}
-        <div className="flex flex-wrap gap-4 justify-center">
-          <SpeechBubble>FRESH COOKIES?!?</SpeechBubble>
-          <SpeechBubble className="transform translate-y-24">BUTTER TARTS TOO!</SpeechBubble>
-          <SpeechBubble className="transform translate-y-8">in AJAX!?</SpeechBubble>
-        </div>
+        {/* Top text */}
+      <div className="w-full flex justify-between items-start px-6">
+        <p className="font-bold text-[#7c4a3a] text-lg tracking-wider">
+          FRESH COOKIES?!?!
+        </p>
+        <p className="font-bold text-[#7c4a3a] text-lg tracking-wider">
+          IN AJAX?!
+        </p>
+      </div>
 
-        {/* Order Now Button */}
-        <div className="bg-[#cfae91] px-12 py-8 rounded-[50px] shadow-xl text-center">
-          <h2 className="text-5xl font-bold text-[#4b2e24]">ORDER NOW!</h2>
-        </div>
+      {/* Subtitle */}
+      <p className="mt-2 text-[#7c4a3a] text-md tracking-wider font-semibold">
+        BUTTER TARTS TOO!
+      </p>
 
-        {/* Footer Navigation */}
-        <div className="flex gap-6 flex-wrap justify-center">
-          <NavBubble>ABOUT US</NavBubble>
-          <NavBubble className="transform -translate-y-6">FAQ</NavBubble>
-          <NavBubble>CONTACT US</NavBubble>
-        </div>
-      </main>
+      <Link
+        to="/order"
+        className="mt-6 bg-[#a46a55] text-white text-4xl font-extrabold
+                   px-10 py-6 rounded-[50%] shadow-lg transition-transform
+                   hover:scale-105 hover:shadow-xl"
+        style={{
+          clipPath:
+            "polygon(20% 0%, 80% 0%, 100% 30%, 100% 70%, 80% 100%, 20% 100%, 0 70%, 0 30%)",
+        }}
+      >
+        ORDER NOW!
+      </Link>
+
+      <div className="max-w-5xl mx-auto flex justify-center space-x-6 mt-6">
+        <Link
+          to="/about"
+          className="bg-[#e5cbc7] text-[#806154] px-5 py-2 rounded-md font-bold hover:bg-[#d9a68e] transition"
+        >
+          About Us
+        </Link>
+        <Link
+          to="/faq"
+          className="bg-[#e5cbc7] text-[#806154] px-5 py-2 rounded-md font-bold hover:bg-[#d9a68e] transition"
+        >
+          FAQ
+        </Link>
+        <Link
+          to="/contact"
+          className="bg-[#e5cbc7] text-[#806154] px-5 py-2 rounded-md font-bold hover:bg-[#d9a68e] transition"
+        >
+          Contact Us
+        </Link>
+      </div>
+
+      <div className="bg-[#b67c5a] w-full py-3 px-4 md:px-6 flex items-center justify-between shadow-lg r relative mt-5">
+        <img
+            src="/images/logo.png"
+            alt="Teddy Icon"
+            className="w-14 h-14 sm:w-18 sm:h-18 md:w-22 md:h-22 object-contain"
+        />
+        <img
+          src="/images/logo.png"
+          alt="Teddy Icon"
+          className="w-14 h-14 sm:w-18 sm:h-18 md:w-22 md:h-22 object-contain"
+        />
+        <img
+          src="/images/logo.png"
+          alt="Teddy Icon"
+          className="w-14 h-14 sm:w-18 sm:h-18 md:w-22 md:h-22 object-contain"
+        />
+        <img
+          src="/images/logo.png"
+          alt="Teddy Icon"
+          className="w-14 h-14 sm:w-18 sm:h-18 md:w-22 md:h-22 object-contain transform scale-x-[-1]"
+        />
+        <img
+          src="/images/logo.png"
+          alt="Teddy Icon"
+          className="w-14 h-14 sm:w-18 sm:h-18 md:w-22 md:h-22 object-contain transform scale-x-[-1]"
+        />
+        <img
+          src="/images/logo.png"
+          alt="Teddy Icon"
+          className="w-14 h-14 sm:w-18 sm:h-18 md:w-22 md:h-22 object-contain transform scale-x-[-1]"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 justify-items-center">
+        {products.map((item) => (
+          <ItemCard
+            key={item.id}
+            title={item.title}
+            description={item.description}
+            price={item.price}
+            image={item.img}
+          />
+        ))}
+      </div>
+
+      <Link
+        to="/products"
+        className="mt-8 bg-[#e5cbc7] text-[#806154] px-6 py-3 rounded-full shadow-xl text-lg font-bold hover:bg-[#b9967a] transition"
+      >
+        All Our Products
+      </Link>
+
     </div>
-  );
-}
-
-function SpeechBubble({ children, className = "" }) {
-  return (
-    <div className={`relative bg-white px-6 py-3 rounded-xl border-2 border-[#4b2e24] shadow text-[#4b2e24] font-semibold text-xl ${className}`}>
-      {children}
-      <div className="absolute -bottom-2 left-6 w-3 h-3 bg-white border-l-2 border-b-2 border-[#4b2e24] rotate-45"></div>
-    </div>
-  );
-}
-
-function NavBubble({ children, className = "" }) {
-  return (
-    <button className={`bg-[#cfae91] text-[#4b2e24] px-6 py-3 rounded-full font-semibold shadow-md hover:scale-105 transition text-lg ${className}`}>
-      {children}
-    </button>
   );
 }
