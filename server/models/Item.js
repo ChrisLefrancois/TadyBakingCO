@@ -1,5 +1,5 @@
 // server/models/Item.js
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const itemSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -11,5 +11,4 @@ const itemSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-const Item = mongoose.model('Item', itemSchema);
-export default Item;
+module.exports = mongoose.model('Item', itemSchema)

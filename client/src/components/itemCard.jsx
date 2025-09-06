@@ -22,7 +22,7 @@ const ItemCard = ({ title, description, price, image }) => {
       <hr />
 
       {/* Price */}
-      <button className="text-[#b89e92]">Add To Cart</button>
+      <p className="font-petitcochon text-center text-[#b89e92] text-xl">ADD To BAG</p>
     </div>
   );
 };

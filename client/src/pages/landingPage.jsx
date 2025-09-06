@@ -2,6 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import ItemCard from "../components/itemCard";
 
+
+
 export default function LandingPage() {
   const products = [
     {
@@ -22,26 +24,26 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="bg-[##fbf1e5] min-h-screen flex flex-col items-center font-sans">
+    <div className="bg-[##fbf1e5] min-h-screen flex flex-col items-center">
 
         {/* Top text */}
       <div className="w-full flex justify-between items-start px-6">
-        <p className="font-bold text-[#7c4a3a] text-lg tracking-wider">
+        <p className="font-petitcochon font-bold text-[#7c4a3a] text-lg tracking-wider">
           FRESH COOKIES?!?!
         </p>
-        <p className="font-bold text-[#7c4a3a] text-lg tracking-wider">
+        <p className=" font-petitcochon font-bold text-[#7c4a3a] text-lg tracking-wider">
           IN AJAX?!
         </p>
       </div>
 
       {/* Subtitle */}
-      <p className="mt-2 text-[#7c4a3a] text-md tracking-wider font-semibold">
+      <p className=" font-petitcochon mt-2 text-[#7c4a3a] text-md tracking-wider font-semibold">
         BUTTER TARTS TOO!
       </p>
 
       <Link
         to="/order"
-        className="mt-6 bg-[#a46a55] text-white text-4xl font-extrabold
+        className="font-petitcochon mt-6 bg-[#a46a55] text-white text-4xl font-extrabold
                    px-10 py-6 rounded-[50%] shadow-lg transition-transform
                    hover:scale-105 hover:shadow-xl"
         style={{
@@ -55,19 +57,19 @@ export default function LandingPage() {
       <div className="max-w-5xl mx-auto flex justify-center space-x-6 mt-6">
         <Link
           to="/about"
-          className="bg-[#e5cbc7] text-[#806154] px-5 py-2 rounded-md font-bold hover:bg-[#d9a68e] transition"
+          className="font-petitcochon bg-[#e5cbc7] text-[#806154] px-5 py-2 rounded-md font-bold hover:bg-[#d9a68e] transition"
         >
           About Us
         </Link>
         <Link
           to="/faq"
-          className="bg-[#e5cbc7] text-[#806154] px-5 py-2 rounded-md font-bold hover:bg-[#d9a68e] transition"
+          className="font-petitcochon bg-[#e5cbc7] text-[#806154] px-5 py-2 rounded-md font-bold hover:bg-[#d9a68e] transition"
         >
           FAQ
         </Link>
         <Link
           to="/contact"
-          className="bg-[#e5cbc7] text-[#806154] px-5 py-2 rounded-md font-bold hover:bg-[#d9a68e] transition"
+          className="font-petitcochon bg-[#e5cbc7] text-[#806154] px-5 py-2 rounded-md font-bold hover:bg-[#d9a68e] transition"
         >
           Contact Us
         </Link>
@@ -107,6 +109,7 @@ export default function LandingPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 justify-items-center">
+
         {products.map((item) => (
           <ItemCard
             key={item.id}
@@ -120,10 +123,11 @@ export default function LandingPage() {
 
       <Link
         to="/products"
-        className="mt-8 bg-[#e5cbc7] text-[#806154] px-6 py-3 rounded-full shadow-xl text-lg font-bold hover:bg-[#b9967a] transition"
+        className="font-petitcochon mt-8 bg-[#e5cbc7] text-[#806154] px-6 py-3 rounded-full shadow-xl text-lg font-bold hover:bg-[#b9967a] transition"
       >
         All Our Products
       </Link>
+
 
     </div>
   );

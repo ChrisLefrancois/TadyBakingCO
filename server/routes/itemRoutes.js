@@ -1,10 +1,10 @@
-import express from 'express';
-import Item from '../models/Item.js';
+const express = require('express');
+const Item = require('../models/Item.js');
 
 const router = express.Router();
 
 // GET all items
-router.get('/items', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const items = await Item.find();
     res.json(items);
@@ -25,13 +25,14 @@ router.get('/items/:id', async (req, res) => {
 });
 
 // POST create new item
-router.post('/items', async (req, res) => {
+router.post('/create', async (req, res) => {
   try {
     const newItem = new Item(req.body);
     const savedItem = await newItem.save();
     res.status(201).json(savedItem);
   } catch (err) {
-    res.status(400).json({ error: 'Bad request', details: err.message });
+    console.error('Server error:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -61,4 +62,4 @@ router.delete('/items/:id', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;

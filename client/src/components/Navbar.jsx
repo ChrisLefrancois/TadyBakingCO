@@ -15,7 +15,7 @@ export default function Navbar() {
         />
 
         {/* Title */}
-        <h1 className="font-extrabold text-lg sm:text-xl md:text-2xl text-white tracking-wide drop-shadow-md whitespace-nowrap text-center">
+        <h1 className="font-petitcochon font-extrabold text-lg sm:text-xl md:text-2xl text-white tracking-wide drop-shadow-md whitespace-nowrap text-center">
           TADY BAKING CO
         </h1>
 

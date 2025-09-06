@@ -1,6 +1,6 @@
-import express from 'express';
-import Item from './models/Item.js';
-import Order from './models/Order.js';
+const express = require('express');
+const Item = ('./models/Item.js');
+const Order = ('./models/Order.js');
 
 const router = express.Router();
 
@@ -88,4 +88,4 @@ router.post('/orders', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;

@@ -1,11 +1,11 @@
 // server/index.js
-import express from 'express';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import cors from 'cors';
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const dotenv = require('dotenv');
 
-import itemRoutes from './routes/items.js';
-import orderRoutes from './routes/ordersRoutes.js';
+const itemRoutes = require('./routes/itemRoutes.js');
+const orderRoutes = ('./routes/ordersRoutes.js');
 
 dotenv.config();
 
@@ -15,7 +15,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/items', itemRoutes);
-app.use('/api/orders', orderRoutes);
+// app.use('/api/orders', orderRoutes);
 
 // MongoDB Connection
 const PORT = process.env.PORT || 5000;
