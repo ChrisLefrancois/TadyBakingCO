@@ -8,14 +8,14 @@ export default function LandingPage() {
   const products = [
     {
       id: 1,
-      title: "B.B.C.C. (Brown Butter Choc Chip)",
+      name: "B.B.C.C. (Brown Butter Choc Chip)",
       description: "",
       price: 5.99,
       img: "/images/bbcc.png", // replace with your actual images
     },
     {
       id: 2,
-      title: "B.B.B.T. (Brown Butter Butter Tart)",
+      name: "B.B.B.T. (Brown Butter Butter Tart)",
       description: "",
       price: 5.99,
       img: "/images/bbbt.png", // replace with your actual images
@@ -113,7 +113,7 @@ export default function LandingPage() {
         {products.map((item) => (
           <ItemCard
             key={item.id}
-            title={item.title}
+            name={item.name}
             description={item.description}
             price={item.price}
             image={item.img}
