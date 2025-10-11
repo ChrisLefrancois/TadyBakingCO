@@ -6,8 +6,10 @@ const itemSchema = new mongoose.Schema({
   description: String,
   imageUrl: String,
   priceSingle: { type: Number, required: true },    // price for 1 unit
-  priceSixPack: { type: Number, required: true },   // price for 6 units
-  priceTwelvePack: { type: Number, required: true },// price for 12 units
+  priceTwoPack: { type: Number },    // price for 1 unit
+  priceFourPack: { type: Number },    // price for 1 unit
+  priceSixPack: { type: Number },   // price for 6 units
+  priceTwelvePack: { type: Number },// price for 12 units
   createdAt: { type: Date, default: Date.now },
 });
 

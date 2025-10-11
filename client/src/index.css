@@ -22,6 +22,38 @@
   font-display: swap;
 }
 
+/* ribbon/banner for SAVE label */
+.save-banner {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-12deg);
+  background-color: #e5cbc7;
+  color: #806154;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 4px 9px;
+  border: 1px solid #806154;
+  border-radius: 6px;
+  box-shadow: 1px 1px 0 #806154;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+/* small triangle beneath banner to mimic ribbon tail */
+.save-banner::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) rotate(-12deg);
+  bottom: -6px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #e5cbc7;
+}
+
 
 
 @import "tailwindcss";

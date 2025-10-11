@@ -3,7 +3,7 @@ import { ShoppingBag } from "lucide-react"; // Cart icon
 
 export default function Navbar() {
   return (
-    <nav className="bg-[#b67c5a] w-full py-3 px-4 md:px-6 flex items-center justify-between shadow-lg r relative">
+    <nav className="bg-[#b67c5a] w-full py-3 px-4 md:px-6 flex items-center justify-between shadow-lg relative">
       {/* Centered title with images */}
       <div className="absolute left-1/2 transform -translate-x-[68%] flex items-center gap-1 sm:gap-2 md:gap-3 max-w-[90%] ">
 

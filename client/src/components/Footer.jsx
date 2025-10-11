@@ -5,9 +5,18 @@ export default function Footer() {
   return (
     <div className="bg-[#fbf1e5] text-[#4b2e24] py-8 text-center mt-5">
       {/* Contact Us Button */}
-      <button className="font-petitcochon bg-[#e5cbc7] text-[#806154] font-bold text-lg px-8 py-3 rounded-[40px] shadow-md hover:shadow-lg transition">
+      <button
+        className="relative w-48 h-16 flex items-center justify-center text-[#806154] font-petitcochon font-bold text-lg transition hover:scale-105 mx-auto"
+        style={{
+          backgroundImage: "url('/images/tbc cloud bubble.png')",
+          backgroundSize: "85% 60%", // bubble fully fills button box
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+        }}
+      >
         CONTACT US
       </button>
+
 
       {/* Phone */}
       <p className="font-petitcochon mt-4 text-xl font-bold">

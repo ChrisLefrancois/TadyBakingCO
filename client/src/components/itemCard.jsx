@@ -1,28 +1,24 @@
-// src/components/ItemCard.jsx
 import React from "react";
 
-const ItemCard = ({ name, description, price, image }) => {
+const ItemCard = ({ name, description, image, onAddToBag }) => {
   return (
-    <div className="shadow-lg p-6 max-w-xs transition-transform transform hover:scale-105 hover:shadow-xl mt-5">
-      {/* Image */}
-      <div className="w-full h-48 mb-4 rounded-2xl overflow-hidden">
-        <img
-          src={image}
-          alt={name}
-          className="w-full h-full object-cover"
-        />
+    <div className="border border-black shadow-md p-6 max-w-xs transition-transform transform hover:scale-105 hover:shadow-xl mt-5 bg-[#fbf1e5]">
+      <div className="w-full h-45 mb-4 flex items-center justify-center rounded-2xl overflow-hidden">
+        <img src={image} alt={name} className="w-4/5 h-auto object-contain" />
       </div>
 
-      {/* Title */}
-      <h3 className="text-2xl font-bold text-[#4b2e24]">{name}</h3>
+      <h3 className="text-xl font-bold text-[#4b2e24] text-center leading-tight">
+        {name}
+      </h3>
 
-      {/* Description */}
-      {/* <p className="text-gray-600 mt-2 text-sm">{description}</p> */}
+      <div className="border-t-2 border-dashed border-[#4b2e24] my-3 mx-auto"></div>
 
-      <hr />
-
-      {/* Price */}
-      <p className="font-petitcochon text-center text-[#b89e92] text-xl">ADD To BAG</p>
+      <p
+        onClick={onAddToBag}
+        className="font-petitcochon text-center text-[#b89e92] text-xl font-bold cursor-pointer hover:text-[#4b2e24] transition"
+      >
+        ADD TO BAG
+      </p>
     </div>
   );
 };
