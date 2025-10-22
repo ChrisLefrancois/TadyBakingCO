@@ -7,7 +7,7 @@ import ItemModal from "../components/itemModal";
 export default function ItemsPage() {
   const [products, setProducts] = useState([]);
   const [error, setError] = useState("");
-  const [selected, setSelected] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -22,11 +22,11 @@ export default function ItemsPage() {
   }, []);
 
   function handleOpen(item) {
-    setSelected(item);
+    setSelectedItem(item);
   }
 
   function handleClose() {
-    setSelected(null);
+    setSelectedItem(null);
   }
 
   function handleAddToCart({ item, qty, unitPrice, totalPrice }) {
@@ -38,14 +38,20 @@ export default function ItemsPage() {
   return (
     <>
       {error && <div className="text-red-500">{error}</div>}
-      <div className="grid grid-cols-2 sm:grid-cols-2 gap-6 justify-items-center">
-        {products.map((p) => (
-          <ItemCard key={p._id} item={p} onOpen={handleOpen} />
-        ))}
-      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 justify-items-center">
+  {products.map((p) => (
+    <ItemCard
+      key={p._id}
+      name={p.name}
+      description={p.description}
+      image={p.imageUrl}
+      onAddToBag={() => handleOpen(p)}
+    />
+  ))}
+</div>
 
-      {selected && (
-        <ItemModal item={selected} onClose={handleClose} onAdd={handleAddToCart} />
+      {selectedItem && (
+        <ItemModal item={selectedItem} onClose={handleClose} onAdd={handleAddToCart} />
       )}
     </>
   );

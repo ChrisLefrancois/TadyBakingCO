@@ -105,7 +105,7 @@ export default function LandingPage() {
 
       {/* View all products button */}
       <Link
-        to="/products"
+        to="/items"
         className="font-petitcochon mt-8 bg-[#e5cbc7] text-[#806154] px-6 py-3 rounded-full shadow-xl text-lg font-bold hover:bg-[#b9967a] transition"
       >
         All Our Products
