@@ -1,6 +1,7 @@
+// src/pages/LandingPage.jsx
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import api from "../api"; // ✅ use reusable axios instance
 import ItemCard from "../components/itemCard";
 import ItemModal from "../components/itemModal";
 import orderBubble from "../assets/bigBubble.png";
@@ -10,12 +11,12 @@ export default function LandingPage() {
   const [error, setError] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
 
-  // Fetch items from backend
+  // ✅ Fetch items from backend
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/items");
-        // Take only the first 2 items from the DB
+        const res = await api.get("/api/items");
+        // Take only the first 2 items from DB
         setProducts(res.data.slice(0, 2));
       } catch (err) {
         console.error(err);
@@ -111,8 +112,8 @@ export default function LandingPage() {
         All Our Products
       </Link>
 
-       {/* Modal */}
-       {selectedItem && (
+      {/* Modal */}
+      {selectedItem && (
         <ItemModal item={selectedItem} onClose={() => setSelectedItem(null)} />
       )}
     </div>
