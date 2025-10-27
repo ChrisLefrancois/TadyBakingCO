@@ -15,3 +15,8 @@ html, body {
   align-items: center;
   background-color: #fbf1e5; /* your background color */
 }
+
+html,
+body {
+  overflow-x: hidden;
+}

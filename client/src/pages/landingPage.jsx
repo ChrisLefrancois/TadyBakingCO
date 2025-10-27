@@ -45,14 +45,16 @@ export default function LandingPage() {
       {/* Big Order Now bubble */}
       <Link
         to="/order"
-        className="relative inline-flex items-center justify-center text-white text-4xl font-petitcochon font-extrabold w-80 h-40 bg-no-repeat bg-contain bg-center transition-transform hover:scale-105"
+        className="relative inline-flex items-center justify-center text-white text-3xl sm:text-4xl font-petitcochon font-extrabold w-64 sm:w-80 h-32 sm:h-40 bg-no-repeat bg-contain bg-center transition-transform hover:scale-105"
         style={{ backgroundImage: `url(${orderBubble})` }}
       >
         ORDER NOW!
       </Link>
 
+
       {/* Cloud links */}
-      <div className="max-w-5xl mx-auto flex justify-center space-x-6 mt-6">
+      <div className="w-full flex flex-wrap justify-center gap-4 mt-6 px-2">
+
         {["about", "faq", "contact"].map((page) => (
           <Link
             key={page}
@@ -71,7 +73,8 @@ export default function LandingPage() {
       </div>
 
       {/* Cookie icons bar */}
-      <div className="bg-[#b67c5a] w-full py-3 px-4 md:px-6 flex items-center justify-between shadow-lg relative mt-5">
+      <div className="bg-[#b67c5a] w-full overflow-hidden py-3 px-2 sm:px-4 flex items-center justify-between shadow-lg relative mt-5">
+
         {Array(6)
           .fill("/images/logo.png")
           .map((src, i) => (
