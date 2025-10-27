@@ -1,6 +1,5 @@
-// src/pages/ItemsPage.jsx
 import { useEffect, useState } from "react";
-import api from "../api"; // ✅ use our custom API instance
+import api from "../api"; // ✅ custom axios instance
 import ItemCard from "../components/itemCard";
 import ItemModal from "../components/itemModal";
 
@@ -12,7 +11,7 @@ export default function ItemsPage() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await api.get("/api/items");
+        const res = await api.get("/api/items"); // ✅ uses correct base URL
         setProducts(res.data);
       } catch (err) {
         console.error(err);
@@ -22,17 +21,12 @@ export default function ItemsPage() {
     fetchProducts();
   }, []);
 
-  function handleOpen(item) {
-    setSelectedItem(item);
-  }
+  const handleOpen = (item) => setSelectedItem(item);
+  const handleClose = () => setSelectedItem(null);
 
-  function handleClose() {
-    setSelectedItem(null);
-  }
-
-  function handleAddToCart({ item, qty, unitPrice, totalPrice }) {
+  const handleAddToCart = ({ item, qty, unitPrice, totalPrice }) => {
     console.log("Add to cart:", { itemId: item._id, qty, unitPrice, totalPrice });
-  }
+  };
 
   return (
     <>

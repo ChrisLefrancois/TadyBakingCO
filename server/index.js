@@ -5,7 +5,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 
 const itemRoutes = require("./routes/itemRoutes.js");
-// const orderRoutes = require("./routes/orderRoutes.js"); // ✅ FIXED — missing `require`
+
 
 dotenv.config();
 
@@ -28,7 +28,7 @@ app.use(express.json());
 
 // ✅ Routes
 app.use("/api/items", itemRoutes);
-app.use("/api/orders", orderRoutes); // ✅ Uncommented
+// app.use("/api/orders", orderRoutes); // ✅ Uncommented
 
 // ✅ MongoDB connection
 const PORT = process.env.PORT || 5000;

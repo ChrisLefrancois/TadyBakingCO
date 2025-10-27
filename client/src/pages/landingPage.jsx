@@ -1,7 +1,6 @@
-// src/pages/LandingPage.jsx
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import api from "../api"; // ✅ use reusable axios instance
+import api from "../api"; // ✅ Use shared axios instance
 import ItemCard from "../components/itemCard";
 import ItemModal from "../components/itemModal";
 import orderBubble from "../assets/bigBubble.png";
@@ -11,19 +10,17 @@ export default function LandingPage() {
   const [error, setError] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
 
-  // ✅ Fetch items from backend
+  // ✅ Fetch first 2 items from DB
   useEffect(() => {
-    const fetchItems = async () => {
+    async function fetchItems() {
       try {
         const res = await api.get("/api/items");
-        // Take only the first 2 items from DB
         setProducts(res.data.slice(0, 2));
       } catch (err) {
         console.error(err);
         setError("Failed to fetch items.");
       }
-    };
-
+    }
     fetchItems();
   }, []);
 
@@ -99,7 +96,7 @@ export default function LandingPage() {
             name={item.name}
             description={item.description}
             image={item.imageUrl}
-            onAddToBag={() => setSelectedItem(item)} // 👈 open modal
+            onAddToBag={() => setSelectedItem(item)}
           />
         ))}
       </div>
@@ -114,7 +111,10 @@ export default function LandingPage() {
 
       {/* Modal */}
       {selectedItem && (
-        <ItemModal item={selectedItem} onClose={() => setSelectedItem(null)} />
+        <ItemModal
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
       )}
     </div>
   );
