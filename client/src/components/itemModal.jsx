@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from "react";
+import { useCart } from "../context/CartContext";
 
 export default function ItemModal({ item, onClose, onAdd }) {
   const containerRef = useRef(null);
+  const { addToCart } = useCart();
 
   useEffect(() => {
     function handleKey(e) {
@@ -48,9 +50,14 @@ export default function ItemModal({ item, onClose, onAdd }) {
   const handleAdd = (qty, packPrice) => {
     const unitPrice = packPrice / qty;
     const totalPrice = packPrice;
-    if (onAdd) onAdd({ item, qty, unitPrice, totalPrice });
+
+    // ✅ match your current context definition
+    addToCart(item, qty, unitPrice, totalPrice);
+
     onClose();
   };
+
+
 
   const bundleSave = item.type === "bundle" ? getBundleSaveAmount(item) : 0;
 

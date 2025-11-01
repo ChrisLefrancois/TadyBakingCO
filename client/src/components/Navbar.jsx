@@ -1,12 +1,13 @@
 import React from "react";
-import { ShoppingBag } from "lucide-react"; // Cart icon
+import { ShoppingBag } from "lucide-react";
+import { Link } from "react-router-dom";
+import CartIcon from "./cartIcon.jsx";
 
 export default function Navbar() {
   return (
     <nav className="bg-[#b67c5a] w-full py-3 px-4 md:px-6 flex items-center justify-between shadow-lg relative">
       {/* Centered title with images */}
-      <div className="absolute left-1/2 transform -translate-x-[68%] flex items-center gap-1 sm:gap-2 md:gap-3 max-w-[90%] ">
-
+      <div className="absolute left-1/2 transform -translate-x-[68%] flex items-center gap-1 sm:gap-2 md:gap-3 max-w-[90%]">
         {/* Left image */}
         <img
           src="/images/logo.png"
@@ -28,12 +29,9 @@ export default function Navbar() {
       </div>
 
       {/* Cart Icon */}
-      <button className="text-[#fbf1e5] rounded-full p-2 sm:p-3 shadow-md hover:scale-105 transition ml-auto">
-        <ShoppingBag
-          size={20}
-          className="text-[#fbf1e5] w-8 h-8 sm:w-8  sm:h-8 md:w-10 md:h-10"
-        />
-      </button>
+      <div className="ml-auto">
+        <CartIcon /> {/* ✅ Correctly rendered as a component */}
+      </div>
     </nav>
   );
 }
