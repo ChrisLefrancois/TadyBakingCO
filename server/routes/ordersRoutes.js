@@ -1,91 +1,74 @@
-const express = require('express');
-const Item = ('./models/Item.js');
-const Order = ('./models/Order.js');
-
+const express = require("express");
 const router = express.Router();
+const Order = require("../models/Order.js");
 
-// Helper function to calculate price breakdown
-function calculatePriceForQuantity(item, totalQty) {
-  let qtyLeft = totalQty;
-  let totalPrice = 0;
-  const breakdown = [];
-
-  const packs = [
-    { qty: 12, price: item.priceTwelvePack },
-    { qty: 6, price: item.priceSixPack },
-    { qty: 1, price: item.priceSingle },
-  ];
-
-  for (const pack of packs) {
-    const count = Math.floor(qtyLeft / pack.qty);
-    if (count > 0) {
-      totalPrice += count * pack.price;
-      qtyLeft -= count * pack.qty;
-      breakdown.push({ qty: pack.qty, count });
-    }
-  }
-
-  return { totalPrice, breakdown };
-}
-
-// POST /orders
-router.post('/orders', async (req, res) => {
+// POST /api/orders
+router.post("/", async (req, res) => {
   try {
     const {
-      items,            // [{ itemId, quantity }]
+      items,
+      subtotal,
+      tax,
+      fulfillmentMethod,
+      deliveryAddress,
+      deliveryDistanceKm,
       customerName,
       customerEmail,
       customerPhone,
-      deliveryAddress,
-      paymentMethod,
+      stripePaymentIntentId,
     } = req.body;
 
-    if (!items || !items.length) {
-      return res.status(400).json({ error: 'Order must have at least one item.' });
-    }
-
-    let orderItems = [];
-    let totalOrderPrice = 0;
-
-    // Fetch each item from DB, calculate price & build order items array
-    for (const orderItem of items) {
-      const item = await Item.findById(orderItem.itemId);
-      if (!item) return res.status(404).json({ error: `Item ${orderItem.itemId} not found` });
-
-      const { totalPrice, breakdown } = calculatePriceForQuantity(item, orderItem.quantity);
-
-      // Calculate price per unit average (optional)
-      const pricePerUnit = totalPrice / orderItem.quantity;
-
-      orderItems.push({
-        item: item._id,
-        quantity: orderItem.quantity,
-        pricePerUnit,
-        priceBreakdown: breakdown,  // Optional, store how price was computed
+    // ✅ Basic validation
+    if (!customerName || !customerEmail || !customerPhone) {
+      return res.status(400).json({
+        error: "Customer name, email, and phone are required.",
       });
-
-      totalOrderPrice += totalPrice;
     }
 
+    // 🚚 Delivery fee logic
+    let deliveryFee = 0;
+    if (fulfillmentMethod === "delivery") {
+      if (subtotal < 45) deliveryFee = 5.99;
+    }
+
+    // 💰 Calculate total with proper rounding
+    const finalTotal = +(subtotal + tax + deliveryFee).toFixed(2);
+
+    // 🧾 Create new order
     const order = new Order({
-      items: orderItems,
+      items,
+      subtotal,
+      tax,
+      deliveryFee,
+      total: finalTotal,
+      fulfillmentMethod,
+      deliveryAddress,
+      deliveryDistanceKm,
       customerName,
       customerEmail,
       customerPhone,
-      deliveryAddress,
-      paymentMethod,
-      totalPrice: totalOrderPrice,
-      status: 'pending',
+      stripePaymentIntentId,
     });
 
-    await order.save();
-
-    res.status(201).json({ message: 'Order created', orderId: order._id });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
+    const saved = await order.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    console.error("Error saving order:", err);
+    res.status(500).json({ error: "Failed to save order" });
   }
 });
+
+// GET /api/orders/:id
+router.get("/:id", async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ error: "Order not found" });
+    res.json(order);
+  } catch (err) {
+    console.error("❌ Failed to fetch order:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 
 module.exports = router;

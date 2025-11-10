@@ -5,6 +5,8 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 
 const itemRoutes = require("./routes/itemRoutes.js");
+const orderRoutes = require('./routes/ordersRoutes.js');
+
 
 
 dotenv.config();
@@ -28,7 +30,8 @@ app.use(express.json());
 
 // ✅ Routes
 app.use("/api/items", itemRoutes);
-// app.use("/api/orders", orderRoutes); // ✅ Uncommented
+app.use('/api/orders', orderRoutes);
+
 
 // ✅ MongoDB connection
 const PORT = process.env.PORT || 5000;

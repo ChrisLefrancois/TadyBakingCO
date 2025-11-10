@@ -6,6 +6,7 @@ import Landing from './pages/landingPage'
 import FAQ from "./pages/faqPage";
 import Items from "./pages/itemsPage";
 import CartPages from "./pages/CartCheckout";
+import OrderConfirmation from "./pages/OrderConfirmation.jsx";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/faq" element={<FAQ />} />
         <Route path="/items" element={<Items />} />
         <Route path="/cart" element={<CartPages />} />
+        <Route path="/order-confirmation/:id" element={<OrderConfirmation />} />
       </Routes>
       <Footer />
     </Router>
