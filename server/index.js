@@ -1,17 +1,20 @@
 // server/index.js
+const dotenv = require("dotenv");
+dotenv.config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const dotenv = require("dotenv");
 
 const itemRoutes = require("./routes/itemRoutes.js");
 const orderRoutes = require('./routes/ordersRoutes.js');
 
 
 
-dotenv.config();
+
+
 
 const app = express();
+
 
 // ✅ CORS setup
 app.use(
@@ -32,6 +35,11 @@ app.use(express.json());
 app.use("/api/items", itemRoutes);
 app.use('/api/orders', orderRoutes);
 
+console.log("GMAIL_USER:", process.env.GMAIL_USER || "(missing)");
+console.log(
+  "GMAIL_APP_PASSWORD present:",
+  process.env.GMAIL_APP_PASSWORD ? "✅ yes" : "❌ no"
+);
 
 // ✅ MongoDB connection
 const PORT = process.env.PORT || 5000;

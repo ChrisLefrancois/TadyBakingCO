@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ShoppingBag, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 
 export default function CartIcon() {
   const { cart, totalItems, totalPrice, removeFromCart } = useCart();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
-  // 🧠 Close dropdown on outside click
+  // 🧠 Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(e) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -19,12 +20,19 @@ export default function CartIcon() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
+  // 🧾 Handle navigation to cart (so dropdown closes cleanly)
+  const handleViewCart = () => {
+    setOpen(false);
+    navigate("/cart");
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Main Icon */}
+      {/* 🛍 Main Icon */}
       <button
         onClick={() => setOpen((prev) => !prev)}
         className="relative inline-flex items-center justify-center p-2 rounded-full hover:scale-110 transition"
+        aria-label="Shopping cart"
       >
         <ShoppingBag size={26} className="text-[#fbf1e5]" />
         {totalItems > 0 && (
@@ -34,7 +42,7 @@ export default function CartIcon() {
         )}
       </button>
 
-      {/* Animated Dropdown */}
+      {/* 🧈 Dropdown (animated) */}
       <div
         className={`absolute right-0 mt-3 w-72 transform transition-all duration-300 ease-out ${
           open
@@ -68,30 +76,31 @@ export default function CartIcon() {
                         {p.qty} × ${safeUnit.toFixed(2)}
                       </p>
                     </div>
-                      <button
-                        onClick={() => removeFromCart(p.item._id, p.unitPrice)}
-                        className="text-[#b67c5a] hover:text-[#7c4a3a] transition"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                    <button
+                      onClick={() => removeFromCart(p.item._id, p.unitPrice)}
+                      className="text-[#b67c5a] hover:text-[#7c4a3a] transition"
+                      aria-label="Remove item"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
                 );
               })}
             </div>
 
+            {/* Total + Link */}
             <div className="mt-3 border-t border-[#e5cbc7] pt-2 text-right">
               <p className="text-sm text-[#4b2e24] font-semibold">
                 Total: ${(totalPrice || 0).toFixed(2)}
               </p>
             </div>
 
-            <Link
-              to="/cart"
-              onClick={() => setOpen(false)}
-              className="block text-center mt-3 bg-[#b67c5a] text-[#fbf1e5] font-bold py-2 rounded-xl hover:scale-105 transition"
+            <button
+              onClick={handleViewCart}
+              className="w-full mt-3 bg-[#b67c5a] text-[#fbf1e5] font-bold py-2 rounded-xl hover:scale-105 transition"
             >
               View Full Cart
-            </Link>
+            </button>
           </div>
         ) : (
           <div className="bg-[#fbf1e5] border border-[#b67c5a] rounded-2xl shadow-xl p-4 text-center text-[#4b2e24] font-petitcochon">
