@@ -22,7 +22,9 @@ app.use(
     origin: [
       "http://localhost:5173",
       "https://tady-baking-co.vercel.app",
-      "https://tadybakingco.onrender.com"
+      "https://tadybakingco.onrender.com",
+      "https://www.tadybakingco.ca",
+      "https://tadybakingco.ca"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
