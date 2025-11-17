@@ -2,11 +2,12 @@ const express = require("express");
 const router = express.Router();
 const Stripe = require("stripe");
 const Order = require("../models/Order");
+const axios = require("axios");
 const sendEmail = require("../utils/sendEmail");
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// TAX rate must match frontend
+// TAX must match frontend
 const TAX_RATE = 0.13;
 
 // ------------------------------------------------------
@@ -21,10 +22,9 @@ router.post("/create-payment-intent", async (req, res) => {
     }
 
     const subtotal = items.reduce((sum, p) => sum + p.unitPrice * p.qty, 0);
-
     const tax = Math.round(subtotal * TAX_RATE * 100) / 100;
     const deliveryFee =
-      fulfillmentMethod === "delivery" ? (subtotal < 45 ? 5.99 : 0) : 0;
+      fulfillmentMethod === "delivery" && subtotal < 45 ? 5.99 : 0;
 
     const total = Math.round((subtotal + tax + deliveryFee) * 100) / 100;
 
@@ -42,7 +42,7 @@ router.post("/create-payment-intent", async (req, res) => {
 });
 
 // ------------------------------------------------------
-// 2) UPDATE PAYMENT INTENT WHEN CART CHANGES
+// 2) UPDATE PAYMENT INTENT
 // ------------------------------------------------------
 router.post("/update-payment-intent", async (req, res) => {
   try {
@@ -51,10 +51,10 @@ router.post("/update-payment-intent", async (req, res) => {
     if (!paymentIntentId)
       return res.status(400).json({ error: "PaymentIntent ID missing." });
 
-    let subtotal = items.reduce((sum, p) => sum + p.unitPrice * p.qty, 0);
-    let deliveryFee =
-      fulfillmentMethod === "delivery" && subtotal < 45 ? 5.99 : 0;
+    const subtotal = items.reduce((sum, p) => sum + p.unitPrice * p.qty, 0);
     const tax = Math.round(subtotal * TAX_RATE * 100) / 100;
+    const deliveryFee =
+      fulfillmentMethod === "delivery" && subtotal < 45 ? 5.99 : 0;
 
     const total = Math.round((subtotal + tax + deliveryFee) * 100);
 
@@ -78,21 +78,58 @@ router.post("/", async (req, res) => {
       tax,
       fulfillmentMethod,
       deliveryAddress,
-      deliveryDistanceKm,
       deliveryFee,
       total,
       customerName,
       customerEmail,
       customerPhone,
       stripePaymentIntentId,
+      city,
+      province,
+      postalCode,
+      scheduledFor,
     } = req.body;
 
-    if (!customerName || !customerEmail || !customerPhone) {
+    if (!customerName || !customerEmail || !customerPhone)
       return res.status(400).json({
         error: "Customer name, email, and phone are required.",
       });
+
+    // ---------------------------------------------------
+    // VALIDATE SCHEDULED TIME
+    // ---------------------------------------------------
+    if (!scheduledFor) {
+      return res.status(400).json({ error: "scheduledFor is required." });
     }
 
+    const scheduled = new Date(scheduledFor);
+
+    if (isNaN(scheduled.getTime())) {
+      return res.status(400).json({ error: "Invalid scheduled date/time." });
+    }
+
+    const now = new Date();
+    const diffHours = (scheduled - now) / (1000 * 60 * 60);
+
+    if (diffHours < 48) {
+      return res.status(400).json({
+        error: "Orders must be placed at least 24 hours in advance.",
+      });
+    }
+
+    const h = scheduled.getHours();
+    const m = scheduled.getMinutes();
+
+    // Allow 10:00 → 18:00 exactly
+    if (h < 10 || h > 18 || (h === 18 && m > 0)) {
+      return res.status(400).json({
+        error: "Pickup/delivery time must be between 10:00 AM and 6:00 PM.",
+      });
+    }
+
+    // ---------------------------------------------------
+    // SAVE ORDER
+    // ---------------------------------------------------
     const order = new Order({
       items,
       subtotal,
@@ -101,19 +138,22 @@ router.post("/", async (req, res) => {
       total,
       fulfillmentMethod,
       deliveryAddress,
-      deliveryDistanceKm,
       customerName,
       customerEmail,
       customerPhone,
       stripePaymentIntentId,
+      city,
+      province,
+      postalCode,
+      scheduledFor,
       status: "pending",
     });
 
     const saved = await order.save();
 
-    // ----------------------------------------------------------
-    // FORMAT ITEMS LIST FOR EMAIL
-    // ----------------------------------------------------------
+    // ---------------------------------------------------
+    // EMAIL ITEMS LIST
+    // ---------------------------------------------------
     const itemsList = items
       .map(
         (item) =>
@@ -121,33 +161,33 @@ router.post("/", async (req, res) => {
       )
       .join("");
 
-    // ----------------------------------------------------------
-    // 🎉 CUSTOMER EMAIL
-    // ----------------------------------------------------------
+    // Format scheduled time for email
+    const scheduledStr = new Date(saved.scheduledFor).toLocaleString("en-CA", {
+      timeZone: "America/Toronto",
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    // ---------------------------------------------------
+    // CUSTOMER EMAIL
+    // ---------------------------------------------------
     const customerHtml = `
 <div style="background:#fbf1e5; padding:40px 10px; font-family:Arial, sans-serif;">
   <div style="max-width:600px; margin:0 auto; background:white; border-radius:20px; padding:30px; border:1px solid #e5cbc7;">
+    <h1 style="text-align:center; color:#4b2e24;">🍪 Thank You for Your Order!</h1>
 
-    <h1 style="text-align:center; color:#4b2e24; margin-top:0;">
-      🍪 Thank You for Your Order!
-    </h1>
+    <p style="font-size:16px;">Hi <strong>${customerName}</strong>,</p>
+    <p>Your delicious cookies are being prepared.</p>
 
-    <p style="font-size:16px; color:#4b2e24;">
-      Hi <strong>${customerName}</strong>,
-      <br><br>
-      We've received your order and started baking your delicious cookies!
-    </p>
-
-    <div style="
-      background:#f7e7da;
-      padding:20px;
-      border-radius:15px;
-      margin:25px 0;
-      border-left:6px solid #b67c5a;">
-
+    <div style="background:#f7e7da; padding:20px; border-radius:15px; margin:25px 0;">
       <p><strong>Order #:</strong> ${saved._id}</p>
       <p><strong>Total:</strong> $${total.toFixed(2)}</p>
       <p><strong>Method:</strong> ${fulfillmentMethod}</p>
+      <p><strong>Scheduled For:</strong> ${scheduledStr}</p>
 
       ${
         fulfillmentMethod === "delivery"
@@ -157,36 +197,21 @@ router.post("/", async (req, res) => {
     </div>
 
     <h2 style="color:#4b2e24;">Your Items</h2>
-    <ul style="padding-left:20px; color:#4b2e24; font-size:15px;">
-      ${itemsList}
-    </ul>
-
-    <p style="margin-top:20px; color:#4b2e24;">
-      You'll receive an update when your order is ready!
-    </p>
-
-    <hr style="border:0; border-top:1px solid #e5cbc7; margin:30px 0;">
-
-    <p style="font-size:13px; text-align:center; color:#806154;">
-      Tady Baking Co • Montréal, QC
-      <br>
-      Call/Text: <strong>(365) 800-6867</strong>
-    </p>
+    <ul>${itemsList}</ul>
   </div>
-</div>
-`;
+</div>`;
 
-    // ----------------------------------------------------------
-    // 👩‍🍳 ADMIN EMAIL
-    // ----------------------------------------------------------
+    // ---------------------------------------------------
+    // ADMIN EMAIL
+    // ---------------------------------------------------
     const adminHtml = `
-<div style="font-family: Arial, sans-serif; background:#faf0e8; padding:30px;">
-  <h2 style="color:#4b2e24;">🍪 New Order Received</h2>
-
+<div style="font-family:Arial, sans-serif;">
+  <h2>🍪 New Order</h2>
   <p><strong>Order ID:</strong> ${saved._id}</p>
   <p><strong>Name:</strong> ${customerName}</p>
   <p><strong>Email:</strong> ${customerEmail}</p>
   <p><strong>Total:</strong> $${total.toFixed(2)}</p>
+  <p><strong>Scheduled For:</strong> ${scheduledStr}</p>
   <p><strong>Method:</strong> ${fulfillmentMethod}</p>
 
   ${
@@ -195,14 +220,10 @@ router.post("/", async (req, res) => {
       : `<p><strong>Pickup:</strong> Montréal</p>`
   }
 
-  <h3 style="margin-top:20px; color:#4b2e24;">Items</h3>
+  <h3>Items</h3>
   <ul>${itemsList}</ul>
-</div>
-`;
+</div>`;
 
-    // ----------------------------------------------------------
-    // ✉ SEND EMAILS
-    // ----------------------------------------------------------
     await sendEmail({
       to: customerEmail,
       subject: `Your Tady Baking Co Order (#${saved._id})`,
@@ -238,9 +259,6 @@ router.get("/", async (req, res) => {
 // ------------------------------------------------------
 // 5) UPDATE ORDER STATUS
 // ------------------------------------------------------
-// ------------------------------------------------------
-// 5) ADMIN – UPDATE ORDER STATUS + send email if needed
-// ------------------------------------------------------
 router.put("/:id/status", async (req, res) => {
   try {
     const { status } = req.body;
@@ -254,9 +272,8 @@ router.put("/:id/status", async (req, res) => {
       "cancelled",
     ];
 
-    if (!allowed.includes(status)) {
+    if (!allowed.includes(status))
       return res.status(400).json({ error: "Invalid order status." });
-    }
 
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ error: "Order not found" });
@@ -264,12 +281,11 @@ router.put("/:id/status", async (req, res) => {
     order.status = status;
     await order.save();
 
-    // ----------------------------------------------------
-    // ✉️ SEND EMAIL ONLY FOR:
-    // ready, out-for-delivery, cancelled
-    // ----------------------------------------------------
+    // Notify only for these statuses
     const shouldNotify =
-      status === "ready" || status === "out-for-delivery" || status === "cancelled";
+      status === "ready" ||
+      status === "out-for-delivery" ||
+      status === "cancelled";
 
     if (shouldNotify) {
       let subject = "";
@@ -277,44 +293,17 @@ router.put("/:id/status", async (req, res) => {
 
       if (status === "ready") {
         subject = `🍪 Your Tady Baking Co Order is Ready! (#${order._id})`;
-        message = `
-          <div style="font-family:Arial; background:#fbf1e5; padding:20px;">
-            <h2 style="color:#4b2e24;">🍪 Your Order is Ready!</h2>
-            <p>Hi <strong>${order.customerName}</strong>,</p>
-            <p>Your cookies are freshly baked and ready for pickup!</p>
-
-            <div style="margin-top:20px;">
-              <p><strong>Pickup Location:</strong> Montréal</p>
-              <p><strong>Order #:</strong> ${order._id}</p>
-            </div>
-
-            <p style="margin-top:20px;">See you soon! 💛</p>
-          </div>
-        `;
+        message = `<p>Your order is ready for pickup!</p>`;
       }
 
       if (status === "out-for-delivery") {
         subject = `🚚 Your Cookies Are On The Way! (#${order._id})`;
-        message = `
-          <div style="font-family:Arial; background:#fbf1e5; padding:20px;">
-            <h2 style="color:#4b2e24;">🚚 Out for Delivery!</h2>
-            <p>Hi <strong>${order.customerName}</strong>,</p>
-            <p>Your cookies are on their way. They'll arrive shortly!</p>
-            <p><strong>Delivery Address:</strong> ${order.deliveryAddress}</p>
-          </div>
-        `;
+        message = `<p>Your cookies are on the way to: ${order.deliveryAddress}</p>`;
       }
 
       if (status === "cancelled") {
         subject = `⚠️ Your Order Has Been Cancelled (#${order._id})`;
-        message = `
-          <div style="font-family:Arial; background:#fbf1e5; padding:20px;">
-            <h2 style="color:#4b2e24;">⚠️ Order Cancelled</h2>
-            <p>Hi <strong>${order.customerName}</strong>,</p>
-            <p>Your order has been cancelled. If this was a mistake, feel free to contact us.</p>
-            <p><strong>Order #:</strong> ${order._id}</p>
-          </div>
-        `;
+        message = `<p>Your order has been cancelled.</p>`;
       }
 
       await sendEmail({
@@ -324,14 +313,12 @@ router.put("/:id/status", async (req, res) => {
       });
     }
 
-    return res.json(order);
-
+    res.json(order);
   } catch (err) {
     console.error("❌ Failed to update order status:", err);
     res.status(500).json({ error: "Failed to update status" });
   }
 });
-
 
 // ------------------------------------------------------
 // 6) GET SINGLE ORDER
@@ -345,6 +332,48 @@ router.get("/:id", async (req, res) => {
   } catch (err) {
     console.error("❌ Fetch single order failed:", err);
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ------------------------------------------------------
+// 7) CHECK DELIVERY DISTANCE
+// ------------------------------------------------------
+router.post("/check-distance", async (req, res) => {
+  try {
+    const { address } = req.body;
+
+    if (!address)
+      return res.status(400).json({ error: "Address required" });
+
+    const SHOP_ADDRESS = "3 Mackeller Ct, Ajax, Ontario L1T 0G2";
+    const MAX_DISTANCE_KM = 12;
+
+    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=${encodeURIComponent(
+      SHOP_ADDRESS
+    )}&destinations=${encodeURIComponent(address)}&key=${
+      process.env.GOOGLE_MAPS_API_KEY
+    }`;
+
+    const response = await axios.get(url);
+    const data = response.data;
+
+    const element = data?.rows?.[0]?.elements?.[0];
+
+    if (!element || element.status !== "OK" || !element.distance) {
+      return res.status(400).json({
+        error: "Could not calculate distance. Please provide a valid address.",
+      });
+    }
+
+    const km = element.distance.value / 1000;
+
+    res.json({
+      distanceKm: Number(km.toFixed(2)),
+      allowed: km <= MAX_DISTANCE_KM,
+    });
+  } catch (err) {
+    console.error("Distance check failed:", err);
+    res.status(500).json({ error: "Failed to check distance" });
   }
 });
 

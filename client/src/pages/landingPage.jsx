@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import api from "../api"; // ✅ Use shared axios instance
+import api from "../api";
 import ItemCard from "../components/itemCard";
 import ItemModal from "../components/itemModal";
 import orderBubble from "../assets/bigBubble.png";
@@ -10,71 +10,103 @@ export default function LandingPage() {
   const [error, setError] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
 
-  // ✅ Fetch first 2 items from DB
-  useEffect(() => {
-    async function fetchItems() {
-      try {
-        const res = await api.get("/api/items");
-        setProducts(res.data.slice(0, 2));
-      } catch (err) {
-        console.error(err);
-        setError("Failed to fetch items.");
-      }
-    }
-    fetchItems();
-  }, []);
+  // Fetch first 2 products
+ // Fetch 2 items on mobile, 3 on desktop
+useEffect(() => {
+  function fetchItemsBasedOnScreen() {
+    const isMobile = window.innerWidth < 768; // md breakpoint
+    const limit = isMobile ? 2 : 3;
+
+    api.get("/api/items/items")
+      .then((res) => {
+        setProducts(res.data.slice(0, limit)); // return only required #
+      })
+      .catch(() => setError("Failed to fetch items."));
+  }
+
+  // Fetch immediately
+  fetchItemsBasedOnScreen();
+
+  // Also fetch again if the user resizes to desktop/mobile
+  window.addEventListener("resize", fetchItemsBasedOnScreen);
+
+  return () => window.removeEventListener("resize", fetchItemsBasedOnScreen);
+}, []);
+
 
   return (
-    <div className="bg-[#fbf1e5] min-h-screen flex flex-col items-center mt-6">
+    <div className="bg-[#fbf1e5] min-h-screen flex flex-col items-center">
 
-      {/* Top text */}
-      <div className="w-full flex justify-between items-start px-6">
-        <p className="font-petitcochon font-bold text-[#7c4a3a] text-lg tracking-wider">
-          FRESH COOKIES?!?!
+      {/* Top section spacing */}
+      <div className="mt-6 w-full max-w-6xl px-6">
+
+        {/* Desktop layout: three-column top bar */}
+        <div className="hidden md:flex justify-between items-center w-full mb-6">
+          <p className="font-petitcochon font-bold text-[#7c4a3a] text-xl">
+            FRESH COOKIES?!?!
+          </p>
+
+          <p className="font-petitcochon font-bold text-[#7c4a3a] text-lg tracking-wide">
+            BUTTER TARTS TOO!
+          </p>
+
+          <p className="font-petitcochon font-bold text-[#7c4a3a] text-xl">
+            IN AJAX?!
+          </p>
+        </div>
+
+        {/* Mobile stacked layout */}
+        <div className="md:hidden w-full flex justify-between items-start px-1">
+          <p className="font-petitcochon font-bold text-[#7c4a3a] text-lg">
+            FRESH COOKIES?!?!
+          </p>
+          <p className="font-petitcochon font-bold text-[#7c4a3a] text-lg">
+            IN AJAX?!
+          </p>
+        </div>
+
+        <p className="md:hidden font-petitcochon mt-2 text-[#7c4a3a] text-md tracking-wider font-semibold text-center">
+          BUTTER TARTS TOO!
         </p>
-        <p className="font-petitcochon font-bold text-[#7c4a3a] text-lg tracking-wider">
-          IN AJAX?!
-        </p>
-      </div>
 
-      {/* Subtitle */}
-      <p className="font-petitcochon mt-2 text-[#7c4a3a] text-md tracking-wider font-semibold">
-        BUTTER TARTS TOO!
-      </p>
-
-      {/* Big Order Now bubble */}
-      <Link
-        to="/order"
-        className="relative inline-flex items-center justify-center text-white text-3xl sm:text-4xl font-petitcochon font-extrabold w-64 sm:w-80 h-32 sm:h-40 bg-no-repeat bg-contain bg-center transition-transform hover:scale-105"
-        style={{ backgroundImage: `url(${orderBubble})` }}
-      >
-        ORDER NOW!
-      </Link>
-
-
-      {/* Cloud links */}
-      <div className="w-full flex flex-wrap justify-center gap-4 mt-6 px-2">
-
-        {["about", "faq", "contact"].map((page) => (
+        {/* ORDER NOW bubble */}
+        <div className="w-full flex justify-center mt-4">
           <Link
-            key={page}
-            to={`/${page}`}
-            className="relative w-32 h-16 flex items-center justify-center text-[#806154] font-petitcochon font-bold transition hover:scale-105"
-            style={{
-              backgroundImage: "url('/images/tbc cloud bubble.png')",
-              backgroundSize: "contain",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center",
-            }}
+            to="/order"
+            className="relative inline-flex items-center justify-center text-white
+              text-3xl sm:text-4xl font-petitcochon font-extrabold
+              w-64 sm:w-80 h-32 sm:h-40
+              bg-no-repeat bg-contain bg-center transition-transform hover:scale-105"
+            style={{ backgroundImage: `url(${orderBubble})` }}
           >
-            {page.toUpperCase()}
+            ORDER NOW!
           </Link>
-        ))}
+        </div>
+
+        {/* Cloud links (About / FAQ / Contacts) */}
+        <div className="w-full flex flex-wrap justify-center gap-6 mt-6 px-2">
+          {["about", "faq", "contact"].map((page) => (
+            <Link
+              key={page}
+              to={`/${page}`}
+              className="relative w-32 h-16 flex items-center justify-center
+                text-[#806154] font-petitcochon font-bold transition
+                hover:scale-105"
+              style={{
+                backgroundImage: "url('/images/tbc cloud bubble.png')",
+                backgroundSize: "contain",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center",
+              }}
+            >
+              {page.toUpperCase()}
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* Cookie icons bar */}
-      <div className="bg-[#b67c5a] w-full overflow-hidden py-3 px-2 sm:px-4 flex items-center justify-between shadow-lg relative mt-5">
-
+      <div className="bg-[#b67c5a] w-full overflow-hidden py-4 px-6 flex items-center justify-between shadow-inner mt-8">
         {Array(6)
           .fill("/images/logo.png")
           .map((src, i) => (
@@ -82,17 +114,35 @@ export default function LandingPage() {
               key={i}
               src={src}
               alt="Teddy Icon"
-              className={`w-14 h-14 sm:w-18 sm:h-18 md:w-22 md:h-22 object-contain ${
+              className={`w-14 h-14 sm:w-20 sm:h-20 object-contain ${
                 i >= 3 ? "transform scale-x-[-1]" : ""
               }`}
             />
           ))}
       </div>
 
-      {/* Items from database */}
-      {error && <p className="text-red-500 mt-4">{error}</p>}
+      {/* Bubble button - matching About/FAQ/Contact */}
+      <div className="mt-10 mb-8 flex justify-center w-full">
+        <Link
+          to="/items"
+          className="relative w-48 h-20 sm:w-56 sm:h-24
+            flex items-center justify-center
+            text-[#806154] font-petitcochon font-bold text-lg sm:text-xl
+            transition hover:scale-105"
+          style={{
+            backgroundImage: "url('/images/tbc cloud bubble.png')",
+            backgroundSize: "contain",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+          }}
+        >
+          All Our Products
+        </Link>
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 justify-items-center">
+
+      {/* Featured Products */}
+      <div className="w-full max-w-5xl grid grid-cols-1 sm:grid-cols-3 gap-12 justify-items-center mt-4 px-4">
         {products.map((item) => (
           <ItemCard
             key={item._id}
@@ -104,21 +154,11 @@ export default function LandingPage() {
         ))}
       </div>
 
-      {/* View all products button */}
-      <Link
-        to="/items"
-        className="font-petitcochon mt-8 bg-[#e5cbc7] text-[#806154] px-6 py-3 rounded-full shadow-xl text-lg font-bold hover:bg-[#b9967a] transition"
-      >
-        All Our Products
-      </Link>
-
       {/* Modal */}
       {selectedItem && (
-        <ItemModal
-          item={selectedItem}
-          onClose={() => setSelectedItem(null)}
-        />
+        <ItemModal item={selectedItem} onClose={() => setSelectedItem(null)} />
       )}
+
     </div>
   );
 }

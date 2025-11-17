@@ -3,6 +3,8 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 // Create context
 const CartContext = createContext();
 
+
+
 // Custom hook
 export const useCart = () => useContext(CartContext);
 
@@ -70,3 +72,28 @@ const removeFromCart = (id, unitPrice) => {
     </CartContext.Provider>
   );
 };
+
+// ✨ FLY TO CART ANIMATION
+export function animateFlyToCart(imgSrc, startX, startY) {
+  const cartIcon = document.querySelector(".cart-icon");
+  if (!cartIcon) return;
+
+  const cartRect = cartIcon.getBoundingClientRect();
+
+  // Create floating image
+  const img = document.createElement("img");
+  img.src = imgSrc;
+  img.className = "flying-img";
+  img.style.left = `${startX}px`;
+  img.style.top = `${startY}px`;
+
+  document.body.appendChild(img);
+
+  // Force browser layout to enable animation
+  img.getBoundingClientRect();
+
+  img.style.transform = `translate(${cartRect.left - startX}px, ${cartRect.top - startY}px) scale(0.2)`;
+  img.style.opacity = "0";
+
+  setTimeout(() => img.remove(), 900);
+}

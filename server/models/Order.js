@@ -11,6 +11,7 @@ const OrderSchema = new mongoose.Schema(
         totalPrice: Number,
       },
     ],
+
     subtotal: Number,
     tax: Number,
     deliveryFee: Number,
@@ -20,18 +21,34 @@ const OrderSchema = new mongoose.Schema(
     deliveryAddress: String,
     deliveryDistanceKm: Number,
 
+    // New fields (delivery metadata)
+    city: String,
+    province: String,
+    postalCode: String,
+
+    scheduledFor: {
+      type: Date,
+      required: true,
+    },
+
     customerName: String,
     customerEmail: String,
     customerPhone: String,
 
     stripePaymentIntentId: String,
 
-    // 🆕 ADD ORDER STATUS
     status: {
       type: String,
-      enum: ["pending", "preparing", "ready", "out-for-delivery", "cancelled"],
-      default: "pending"
-    }
+      enum: [
+        "pending",
+        "preparing",
+        "ready",
+        "out-for-delivery",
+        "cancelled",
+        "completed",
+      ],
+      default: "pending",
+    },
   },
   { timestamps: true }
 );

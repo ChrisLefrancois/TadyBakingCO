@@ -9,15 +9,16 @@ export default function AdminOrderDetail() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
+  // Cancel modal
+  const [confirmCancel, setConfirmCancel] = useState(false);
+
   const badgeClasses = {
-    pending:
-      "bg-yellow-200 text-yellow-700 border border-yellow-400 shadow-sm",
-    preparing:
-      "bg-blue-200 text-blue-700 border border-blue-400 shadow-sm",
-    ready:
-      "bg-green-200 text-green-700 border border-green-400 shadow-sm",
-    completed:
-      "bg-gray-200 text-gray-600 border border-gray-400 shadow-sm",
+    pending: "bg-yellow-200 text-yellow-700 border border-yellow-400 shadow-sm",
+    preparing: "bg-blue-200 text-blue-700 border border-blue-400 shadow-sm",
+    ready: "bg-green-200 text-green-700 border border-green-400 shadow-sm",
+    "out-for-delivery": "bg-orange-200 text-orange-700 border border-orange-400 shadow-sm",
+    completed: "bg-gray-200 text-gray-600 border border-gray-400 shadow-sm",
+    cancelled: "bg-red-200 text-red-700 border border-red-400 shadow-sm",
   };
 
   useEffect(() => {
@@ -47,37 +48,66 @@ export default function AdminOrderDetail() {
     }
   }
 
-  if (loading) {
-    return <p className="text-center mt-10 text-[#4b2e24]">Loading order...</p>;
-  }
-
-  if (!order) {
-    return <p className="text-center mt-10 text-red-600">Order not found.</p>;
-  }
+  if (loading) return <p className="text-center mt-10 text-[#4b2e24]">Loading order...</p>;
+  if (!order) return <p className="text-center mt-10 text-red-600">Order not found.</p>;
 
   return (
     <div className="bg-[#fbf1e5] min-h-screen py-10 px-5 flex justify-center">
+
+      {/* CANCEL MODAL */}
+      {confirmCancel && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full text-center">
+            <h2 className="text-xl font-bold text-[#4b2e24] mb-3">
+              Cancel this order?
+            </h2>
+
+            <p className="text-sm text-[#4b2e24] mb-6">
+              This action cannot be undone.
+            </p>
+
+            <div className="flex gap-3 justify-center">
+              <button
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-full font-bold"
+                onClick={() => setConfirmCancel(false)}
+              >
+                Keep Order
+              </button>
+
+              <button
+                className="px-4 py-2 bg-red-500 text-white rounded-full font-bold"
+                onClick={() => {
+                  updateStatus("cancelled");
+                  setConfirmCancel(false);
+                }}
+              >
+                Cancel Order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MAIN CONTAINER */}
       <div className="w-full max-w-3xl bg-white rounded-3xl border border-[#b67c5a] shadow-lg p-6">
 
         <h1 className="font-petitcochon text-4xl text-[#4b2e24] mb-4 text-center">
           Order Details
         </h1>
 
-        {/* STATUS BADGE */}
         <div className="text-center mb-4">
-          <span
-            className={`px-4 py-2 text-sm rounded-full font-bold ${badgeClasses[order.status]}`}
-          >
+          <span className={`px-4 py-2 text-sm rounded-full font-bold ${badgeClasses[order.status]}`}>
             {order.status}
           </span>
         </div>
 
-        {/* UPDATE STATUS BUTTONS */}
-        <div className="flex justify-center gap-3 mb-8">
+        {/* STATUS BUTTONS */}
+        <div className="flex flex-wrap justify-center gap-3 mb-8">
+
           <button
             onClick={() => updateStatus("preparing")}
             disabled={updating}
-            className="bg-blue-200 text-blue-700 px-4 py-2 rounded-full font-bold hover:scale-105 transition"
+            className="bg-blue-200 text-blue-700 px-4 py-2 rounded-full font-bold hover:scale-105 transition disabled:opacity-40"
           >
             Mark Preparing
           </button>
@@ -85,21 +115,42 @@ export default function AdminOrderDetail() {
           <button
             onClick={() => updateStatus("ready")}
             disabled={updating}
-            className="bg-green-200 text-green-700 px-4 py-2 rounded-full font-bold hover:scale-105 transition"
+            className="bg-green-200 text-green-700 px-4 py-2 rounded-full font-bold hover:scale-105 transition disabled:opacity-40"
           >
             Mark Ready
           </button>
 
           <button
+            onClick={() => updateStatus("out-for-delivery")}
+            disabled={order.fulfillmentMethod !== "delivery" || updating}
+            className={`px-4 py-2 rounded-full font-bold hover:scale-105 transition disabled:opacity-40 ${
+              order.fulfillmentMethod !== "delivery"
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : "bg-orange-200 text-orange-700"
+            }`}
+          >
+            Out for Delivery
+          </button>
+
+          <button
             onClick={() => updateStatus("completed")}
             disabled={updating}
-            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-full font-bold hover:scale-105 transition"
+            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-full font-bold hover:scale-105 transition disabled:opacity-40"
           >
             Completed
           </button>
+
+          <button
+            onClick={() => setConfirmCancel(true)}
+            disabled={updating}
+            className="bg-red-200 text-red-700 px-4 py-2 rounded-full font-bold hover:scale-105 transition disabled:opacity-40"
+          >
+            Cancel Order
+          </button>
+
         </div>
 
-        {/* CUSTOMER INFO */}
+        {/* CUSTOMER */}
         <div className="mb-6">
           <h2 className="font-semibold text-lg text-[#4b2e24] mb-1">Customer</h2>
           <p>{order.customerName}</p>
@@ -117,7 +168,7 @@ export default function AdminOrderDetail() {
           )}
         </div>
 
-        {/* ORDER ITEMS */}
+        {/* ITEMS */}
         <div className="mb-6">
           <h2 className="font-semibold text-lg text-[#4b2e24] mb-2">Items</h2>
 
@@ -141,15 +192,12 @@ export default function AdminOrderDetail() {
         <div className="border-t border-[#e5cbc7] pt-4 space-y-1 text-right font-petitcochon">
           <p>Subtotal: ${order.subtotal.toFixed(2)}</p>
           <p>Tax: ${order.tax.toFixed(2)}</p>
-          {order.deliveryFee > 0 && (
-            <p>Delivery: ${order.deliveryFee.toFixed(2)}</p>
-          )}
+          {order.deliveryFee > 0 && <p>Delivery: ${order.deliveryFee.toFixed(2)}</p>}
           <p className="text-2xl font-bold text-[#4b2e24]">
             Total: ${order.total.toFixed(2)}
           </p>
         </div>
 
-        {/* BACK BUTTON */}
         <div className="mt-8 text-center">
           <Link
             to="/admin/orders"

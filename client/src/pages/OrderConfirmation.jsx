@@ -39,7 +39,6 @@ export default function OrderConfirmation() {
         {order.fulfillmentMethod === "delivery" && (
           <>
             <p>Delivery Address: {order.deliveryAddress}</p>
-            <p>Distance: {order.deliveryDistanceKm} km</p>
           </>
         )}
 

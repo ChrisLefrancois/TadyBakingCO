@@ -3,15 +3,26 @@ const Item = require('../models/Item.js');
 
 const router = express.Router();
 
-// GET all items
-router.get('/', async (req, res) => {
+// backend/routes/items.js
+router.get("/items", async (req, res) => {
   try {
-    const items = await Item.find();
+    const items = await Item.find().populate({
+      path: "itemsIncluded.item",
+      model: "Item",
+      select: "name imageUrl pricingTiers",
+    });
+
+    console.log("🎉 POPULATED ITEMS:", JSON.stringify(items, null, 2));
     res.json(items);
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    console.error("❌ Failed to fetch items:", err);
+    res.status(500).json({ error: "Failed to fetch items" });
   }
 });
+
+
+// GET all items
+
 
 // GET single item by ID
 router.get('/items/:id', async (req, res) => {
@@ -61,5 +72,7 @@ router.delete('/items/:id', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+
 
 module.exports = router;
