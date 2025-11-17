@@ -8,11 +8,6 @@ const cors = require("cors");
 const itemRoutes = require("./routes/itemRoutes.js");
 const orderRoutes = require('./routes/ordersRoutes.js');
 
-
-
-
-
-
 const app = express();
 
 

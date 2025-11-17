@@ -44,7 +44,7 @@ export default function CartIcon() {
 
       {/* 🧈 Dropdown (animated) */}
       <div
-        className={`absolute right-0 mt-3 w-72 transform transition-all duration-300 ease-out ${
+        className={`absolute right-0 mt-3 z-[9999] w-72 transform transition-all duration-300 ease-out ${
           open
             ? "opacity-100 translate-y-0 visible"
             : "opacity-0 -translate-y-2 invisible pointer-events-none"

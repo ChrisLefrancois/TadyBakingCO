@@ -72,7 +72,7 @@ useEffect(() => {
         {/* ORDER NOW bubble */}
         <div className="w-full flex justify-center mt-4">
           <Link
-            to="/order"
+            to="/items"
             className="relative inline-flex items-center justify-center text-white
               text-3xl sm:text-4xl font-petitcochon font-extrabold
               w-64 sm:w-80 h-32 sm:h-40
