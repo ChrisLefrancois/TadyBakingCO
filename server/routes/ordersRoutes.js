@@ -280,12 +280,12 @@ router.post("/", async (req, res) => {
   } catch (err) {
     console.error("❌ Error saving order:", err);
 
-    // Return ACTUAL ERROR so we can debug in frontend
     return res.status(400).json({
-      error: err?.message || JSON.stringify(err),
-      details: err
+      message: err.message,
+      error: err,
     });
   }
+
 });
 
 // ------------------------------------------------------

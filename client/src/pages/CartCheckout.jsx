@@ -213,7 +213,13 @@ export default function CheckoutPage({ clientSecret }) {
       navigate(`/order-confirmation/${res.data._id}`);
     } catch (err) {
       console.error("Order save error:", err);
-      alert("Order saved failed.");
+
+      if (err.response) {
+        console.error("🔥 SERVER ERROR RESPONSE:", err.response.data);
+        alert("SERVER ERROR:\n" + JSON.stringify(err.response.data, null, 2));
+      } else {
+        alert("Unknown error: " + err.message);
+      }
     } finally {
       setLoading(false);
     }
