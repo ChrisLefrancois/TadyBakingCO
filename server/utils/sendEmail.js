@@ -5,22 +5,29 @@ const GMAIL_USER = process.env.GMAIL_USER;
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
 
 if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
-  console.warn(
-    "⚠️ GMAIL_USER or GMAIL_APP_PASSWORD is missing. Emails will fail to send."
-  );
+  console.warn("⚠️ Missing Gmail env vars. Emails will fail.");
 }
 
+// Create transporter once
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: GMAIL_USER,
-    pass: GMAIL_APP_PASSWORD, // this must be a Gmail APP PASSWORD, not your normal password
+    pass: GMAIL_APP_PASSWORD, // Gmail App Password ONLY
   },
 });
 
-async function sendEmail({ to, subject, html }) {
+/**
+ * Send an email (supports attachments)
+ * @param {Object} options
+ * @param {string} options.to
+ * @param {string} options.subject
+ * @param {string} options.html
+ * @param {Array}  [options.attachments] - Optional attachments
+ */
+async function sendEmail({ to, subject, html, attachments = [] }) {
   if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
-    console.error("❌ Cannot send email: missing Gmail credentials env vars.");
+    console.error("❌ Missing Gmail credentials. Email not sent.");
     return;
   }
 
@@ -31,11 +38,16 @@ async function sendEmail({ to, subject, html }) {
     html,
   };
 
+  // ✔ Only attach files if provided
+  if (attachments.length > 0) {
+    mailOptions.attachments = attachments;
+  }
+
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log("✅ Email sent:", info.messageId);
+    console.log("📨 Email sent:", info.messageId);
   } catch (err) {
-    console.error("❌ Email sending failed:", err.message);
+    console.error("❌ Email sending failed:", err);
   }
 }
 

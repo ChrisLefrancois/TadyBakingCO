@@ -4,6 +4,9 @@ const Stripe = require("stripe");
 const Order = require("../models/Order");
 const axios = require("axios");
 const sendEmail = require("../utils/sendEmail");
+const fs = require("fs");
+const path = require("path");
+const generateInvoicePDF = require("../utils/generateInvoicePDF");
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -71,6 +74,9 @@ router.post("/update-payment-intent", async (req, res) => {
 // 3) CREATE ORDER
 // ------------------------------------------------------
 router.post("/", async (req, res) => {
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
   try {
     const {
       items,
@@ -175,31 +181,41 @@ router.post("/", async (req, res) => {
     // ---------------------------------------------------
     // CUSTOMER EMAIL
     // ---------------------------------------------------
+
+    const PICKUP_ADDRESS = "3 Mackeller Ct, Ajax, Ontario L1T 0G2";
+
     const customerHtml = `
-<div style="background:#fbf1e5; padding:40px 10px; font-family:Arial, sans-serif;">
-  <div style="max-width:600px; margin:0 auto; background:white; border-radius:20px; padding:30px; border:1px solid #e5cbc7;">
-    <h1 style="text-align:center; color:#4b2e24;">🍪 Thank You for Your Order!</h1>
+    <div style="background:#fbf1e5; padding:40px 10px; font-family:Arial, sans-serif;">
+      <div style="max-width:600px; margin:0 auto; background:white; border-radius:20px; padding:30px; border:1px solid #e5cbc7;">
+        <h1 style="text-align:center; color:#4b2e24;">🍪 Thank You for Your Order!</h1>
 
-    <p style="font-size:16px;">Hi <strong>${customerName}</strong>,</p>
-    <p>Your delicious cookies are being prepared.</p>
+        <p style="font-size:16px;">Hi <strong>${customerName}</strong>,</p>
+        <p>Your order has been received and is now being prepared!</p>
 
-    <div style="background:#f7e7da; padding:20px; border-radius:15px; margin:25px 0;">
-      <p><strong>Order #:</strong> ${saved._id}</p>
-      <p><strong>Total:</strong> $${total.toFixed(2)}</p>
-      <p><strong>Method:</strong> ${fulfillmentMethod}</p>
-      <p><strong>Scheduled For:</strong> ${scheduledStr}</p>
+        <div style="background:#f7e7da; padding:20px; border-radius:15px; margin:25px 0;">
+          <p><strong>Order #:</strong> ${saved._id}</p>
+          <p><strong>Total:</strong> $${total.toFixed(2)}</p>
+          <p><strong>Method:</strong> ${fulfillmentMethod}</p>
+          <p><strong>Scheduled For:</strong> ${scheduledStr}</p>
 
-      ${
-        fulfillmentMethod === "delivery"
-          ? `<p><strong>Delivery Address:</strong><br>${deliveryAddress}</p>`
-          : `<p><strong>Pickup Location:</strong> Montréal</p>`
-      }
-    </div>
+          ${
+            fulfillmentMethod === "delivery"
+              ? `<p><strong>Delivery Address:</strong><br>${deliveryAddress}</p>`
+              : `<p><strong>Pickup Address:</strong><br>${PICKUP_ADDRESS}</p>`
+          }
+        </div>
 
-    <h2 style="color:#4b2e24;">Your Items</h2>
-    <ul>${itemsList}</ul>
-  </div>
-</div>`;
+        <h2 style="color:#4b2e24;">Your Items</h2>
+        <ul>${itemsList}</ul>
+
+        ${
+          fulfillmentMethod === "pickup"
+            ? `<p style="margin-top:20px;">We will send you another email when your order is <strong>ready for pickup</strong>.</p>`
+            : `<p style="margin-top:20px;">We will notify you when your order is <strong>out for delivery</strong>.</p>`
+        }
+      </div>
+    </div>`;
+
 
     // ---------------------------------------------------
     // ADMIN EMAIL
@@ -224,16 +240,40 @@ router.post("/", async (req, res) => {
   <ul>${itemsList}</ul>
 </div>`;
 
+    // ------ PDF INVOICE ------
+    let attachments = [];
+    let receiptPath = null;
+
+    try {
+      receiptPath = await generateInvoicePDF(saved);
+      if (receiptPath && fs.existsSync(receiptPath)) {
+        attachments = [
+          {
+            filename: `receipt_TBC-${String(saved._id).slice(-6).toUpperCase()}.pdf`,
+            path: receiptPath,
+            contentType: "application/pdf",
+          },
+        ];
+      }
+      console.log("📄 RECEIPT READY:", receiptPath);
+    } catch (error) {
+      console.warn("⚠️ Receipt PDF failed:", error);
+    }
+
+
     await sendEmail({
       to: customerEmail,
       subject: `Your Tady Baking Co Order (#${saved._id})`,
       html: customerHtml,
+      attachments, // ⚠️ only added if exists
     });
+
 
     await sendEmail({
       to: process.env.ADMIN_EMAIL,
       subject: `🍪 New Order (#${saved._id})`,
       html: adminHtml,
+      attachments,
     });
 
     return res.status(201).json(saved);
@@ -255,6 +295,112 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch orders" });
   }
 });
+
+// ------------------------------------------------------
+// 4b) DOWNLOAD RECEIPT PDF (Admin)
+// GET /api/orders/:id/receipt
+// ------------------------------------------------------
+router.get("/:id/receipt", async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ error: "Order not found" });
+
+    const receiptNumber = `TBC-${String(order._id).slice(-6).toUpperCase()}`;
+    const filePath = path.join(
+      __dirname,
+      "..",
+      "temp",
+      `receipt_${receiptNumber}.pdf`
+    );
+
+    // If not present, regenerate
+    if (!fs.existsSync(filePath)) {
+      console.log("Receipt missing on disk, regenerating...");
+      await generateInvoicePDF(order);
+    }
+
+    if (!fs.existsSync(filePath)) {
+      return res
+        .status(404)
+        .json({ error: "Receipt not available. Try again later." });
+    }
+
+    res.sendFile(path.resolve(filePath));
+  } catch (err) {
+    console.error("❌ Failed to download receipt:", err);
+    res.status(500).json({ error: "Failed to download receipt" });
+  }
+});
+
+// ------------------------------------------------------
+// 5b) RESEND RECEIPT EMAIL (Admin)
+// POST /api/orders/:id/resend-receipt
+// ------------------------------------------------------
+router.post("/:id/resend-receipt", async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ error: "Order not found" });
+
+    // Regenerate or ensure receipt exists
+    const receiptPath = await generateInvoicePDF(order);
+    let attachments = [];
+    if (receiptPath && fs.existsSync(receiptPath)) {
+      attachments = [
+        {
+          filename: `receipt_TBC-${String(order._id).slice(-6).toUpperCase()}.pdf`,
+          path: receiptPath,
+          contentType: "application/pdf",
+        },
+      ];
+    }
+
+    const itemsList = order.items
+      .map(
+        (item) =>
+          `<li>${item.qty} × ${item.name} — $${item.totalPrice.toFixed(2)}</li>`
+      )
+      .join("");
+
+    const scheduledStr = new Date(order.scheduledFor).toLocaleString("en-CA", {
+      timeZone: "America/Toronto",
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const PICKUP_ADDRESS = "3 Mackeller Ct, Ajax, Ontario L1T 0G2";
+
+    const html = `
+      <h1>🧾 Your Tady Baking Co Receipt (Resent)</h1>
+      <p>Hi ${order.customerName}, here is a copy of your receipt.</p>
+      <p><strong>Total:</strong> $${order.total.toFixed(2)}</p>
+      <p><strong>Scheduled For:</strong> ${scheduledStr}</p>
+      ${
+        order.fulfillmentMethod === "delivery"
+          ? `<p><strong>Delivery Address:</strong> ${order.deliveryAddress}</p>`
+          : `<p><strong>Pickup Address:</strong> ${PICKUP_ADDRESS}</p>`
+      }
+      <h3>Items</h3>
+      <ul>${itemsList}</ul>
+    `;
+
+    await sendEmail({
+      to: order.customerEmail,
+      subject: `Your Tady Baking Co Receipt (Resent)`,
+      html,
+      attachments,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("❌ Failed to resend receipt:", err);
+    res.status(500).json({ error: "Failed to resend receipt" });
+  }
+});
+
 
 // ------------------------------------------------------
 // 5) UPDATE ORDER STATUS
@@ -293,8 +439,27 @@ router.put("/:id/status", async (req, res) => {
 
       if (status === "ready") {
         subject = `🍪 Your Tady Baking Co Order is Ready! (#${order._id})`;
-        message = `<p>Your order is ready for pickup!</p>`;
+
+        const PICKUP_ADDRESS = "3 Mackeller Ct, Ajax, Ontario L1T 0G2";
+
+        const scheduledStr = new Date(order.scheduledFor).toLocaleString("en-CA", {
+          timeZone: "America/Toronto",
+          weekday: "short",
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        message = `
+          <p>Your order is now <strong>ready for pickup!</strong> 🎉</p>
+          <p><strong>Pickup Address:</strong><br>${PICKUP_ADDRESS}</p>
+          <p><strong>Pickup Time:</strong> ${scheduledStr}</p>
+          <p>Thank you for supporting Tady Baking Co! 🍪</p>
+        `;
       }
+
 
       if (status === "out-for-delivery") {
         subject = `🚚 Your Cookies Are On The Way! (#${order._id})`;

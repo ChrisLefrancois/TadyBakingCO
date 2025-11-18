@@ -35,8 +35,8 @@ export default function FAQ() {
           <div>
             <h3 className="font-lazydog font-bold text-[#806154]">HOW FAR IN ADVANCE DO I NEED TO ORDER?</h3>
             <p className="font-theseasons text-[#806154]">
-              Please provide at least a 18-hour advance notice to fulfill your order.
-              If you need something sooner, reach out — we’ll do our best to accommodate you!
+            Please provide at least a 48 hour advance to ensure we can fulfill your order.
+            If you need something within a shorter time frame please contact us!
             </p>
           </div>
 
@@ -50,7 +50,8 @@ export default function FAQ() {
           <div>
             <h3 className="font-lazydog font-bold text-[#806154]">DELIVERY?</h3>
             <p className="font-theseasons text-[#806154]">
-              We currently offer local delivery within Pickering and Ajax for orders over $45.
+            At this time we are offering local delivery within Scarborough,
+            Pickering, Ajax  Whitby and Oshawa for orders over $45. Orders under $45 are subject to a $5.99 fee.
             </p>
           </div>
 
@@ -62,6 +63,14 @@ export default function FAQ() {
               He is our CTO (Certified Treat Officer) and takes his job very seriously
             </p>
           </div>
+
+          <div>
+            <h3 className="font-lazydog font-bold text-[#806154]">I don’t want salt on my cookies!</h3>
+            <p className="font-theseasons text-[#806154]">
+            Not a problem! Let us know in your order notes if you want to omit the flakey salt or if you want half of your order salted etc.
+            </p>
+          </div>
+
         </div>
       </SectionBubble>
 

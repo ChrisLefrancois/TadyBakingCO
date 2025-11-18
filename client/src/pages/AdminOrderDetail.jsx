@@ -48,6 +48,22 @@ export default function AdminOrderDetail() {
     }
   }
 
+  // 🔥 NEW — resend receipt function
+  async function resendReceipt() {
+    try {
+      await api.post(`/api/orders/${id}/resend-receipt`);
+      alert("Receipt emailed to customer!");
+    } catch (err) {
+      console.error("Failed to resend receipt:", err);
+      alert("Could not resend receipt.");
+    }
+  }
+
+  // 🔥 NEW — download receipt
+  function downloadReceipt() {
+    window.open(`${import.meta.env.VITE_API_BASE}/api/orders/${id}/receipt`, "_blank");
+  }
+
   if (loading) return <p className="text-center mt-10 text-[#4b2e24]">Loading order...</p>;
   if (!order) return <p className="text-center mt-10 text-red-600">Order not found.</p>;
 
@@ -198,6 +214,25 @@ export default function AdminOrderDetail() {
           </p>
         </div>
 
+        {/* 🔥 NEW RECEIPT BUTTONS */}
+        <div className="mt-8 flex flex-col items-center gap-4">
+
+          <button
+            onClick={downloadReceipt}
+            className="bg-[#4b2e24] text-[#fbf1e5] px-6 py-3 rounded-full font-bold hover:scale-105 transition"
+          >
+            Download Receipt (PDF)
+          </button>
+
+          <button
+            onClick={resendReceipt}
+            className="bg-[#b67c5a] text-white px-6 py-3 rounded-full font-bold hover:scale-105 transition"
+          >
+            Resend Receipt Email
+          </button>
+
+        </div>
+
         <div className="mt-8 text-center">
           <Link
             to="/admin/orders"
@@ -206,6 +241,7 @@ export default function AdminOrderDetail() {
             Back to Orders
           </Link>
         </div>
+
       </div>
     </div>
   );

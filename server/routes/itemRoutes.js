@@ -1,78 +1,104 @@
-const express = require('express');
-const Item = require('../models/Item.js');
-
+// backend/routes/items.js
+const express = require("express");
+const Item = require("../models/Item.js");
 const router = express.Router();
 
-// backend/routes/items.js
+// ---------------------------
+// GET ALL ITEMS (with populate)
+// ---------------------------
 router.get("/items", async (req, res) => {
   try {
-    const items = await Item.find().populate({
-      path: "itemsIncluded.item",
-      model: "Item",
-      select: "name imageUrl pricingTiers",
-    });
+    const items = await Item.find()
+      .populate({
+        path: "itemsIncluded.item",
+        select: "name imageUrl pricingTiers",
+      })
+      .lean(); // ⚡ more efficient
 
-    console.log("🎉 POPULATED ITEMS:", JSON.stringify(items, null, 2));
     res.json(items);
   } catch (err) {
-    console.error("❌ Failed to fetch items:", err);
     res.status(500).json({ error: "Failed to fetch items" });
   }
 });
 
-
-// GET all items
-
-
-// GET single item by ID
-router.get('/items/:id', async (req, res) => {
+// ---------------------------
+// GET BUNDLE ITEMS ONLY
+// ---------------------------
+router.get("/items/bundles", async (req, res) => {
   try {
-    const item = await Item.findById(req.params.id);
-    if (!item) return res.status(404).json({ error: 'Item not found' });
-    res.json(item);
+    const bundles = await Item.find({ type: "bundle" })
+      .populate({
+        path: "itemsIncluded.item",
+        select: "name imageUrl pricingTiers",
+      })
+      .lean();
+
+    res.json(bundles);
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: "Failed to fetch bundles" });
   }
 });
 
-// POST create new item
-router.post('/create', async (req, res) => {
+// ---------------------------
+// GET SINGLE ITEM
+// ---------------------------
+router.get("/items/:id", async (req, res) => {
+  try {
+    const item = await Item.findById(req.params.id)
+      .populate({
+        path: "itemsIncluded.item",
+        select: "name imageUrl pricingTiers",
+      });
+
+    if (!item) return res.status(404).json({ error: "Item not found" });
+    res.json(item);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ---------------------------
+// CREATE ITEM
+// ---------------------------
+router.post("/create", async (req, res) => {
   try {
     const newItem = new Item(req.body);
     const savedItem = await newItem.save();
     res.status(201).json(savedItem);
   } catch (err) {
-    console.error('Server error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// PUT update item by ID
-router.put('/items/:id', async (req, res) => {
+// ---------------------------
+// UPDATE ITEM
+// ---------------------------
+router.put("/items/:id", async (req, res) => {
   try {
     const updatedItem = await Item.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
     );
-    if (!updatedItem) return res.status(404).json({ error: 'Item not found' });
+
+    if (!updatedItem) return res.status(404).json({ error: "Item not found" });
     res.json(updatedItem);
   } catch (err) {
-    res.status(400).json({ error: 'Bad request', details: err.message });
+    res.status(400).json({ error: "Bad request", details: err.message });
   }
 });
 
-// DELETE item by ID
-router.delete('/items/:id', async (req, res) => {
+// ---------------------------
+// DELETE ITEM
+// ---------------------------
+router.delete("/items/:id", async (req, res) => {
   try {
     const deletedItem = await Item.findByIdAndDelete(req.params.id);
-    if (!deletedItem) return res.status(404).json({ error: 'Item not found' });
-    res.json({ message: 'Item deleted' });
+    if (!deletedItem) return res.status(404).json({ error: "Item not found" });
+    res.json({ message: "Item deleted" });
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: "Server error" });
   }
 });
-
-
 
 module.exports = router;
