@@ -279,8 +279,14 @@ router.post("/", async (req, res) => {
     return res.status(201).json(saved);
   } catch (err) {
     console.error("❌ Error saving order:", err);
-    res.status(500).json({ error: "Failed to save order" });
+
+    // Return ACTUAL ERROR so we can debug in frontend
+    return res.status(400).json({
+      error: err?.message || JSON.stringify(err),
+      details: err
+    });
   }
+
 });
 
 // ------------------------------------------------------
