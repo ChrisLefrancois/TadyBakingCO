@@ -1,51 +1,49 @@
 // server/utils/sendEmail.js
-const nodemailer = require("nodemailer");
 
-const MAILJET_API_KEY = process.env.MAILJET_API_KEY;
-const MAILJET_SECRET_KEY = process.env.MAILJET_SECRET_KEY;
-const EMAIL_FROM = process.env.EMAIL_FROM || "Tady Baking Co <no-reply@example.com>";
+const Mailjet = require("node-mailjet");
+const fs = require("fs");
 
-if (!MAILJET_API_KEY || !MAILJET_SECRET_KEY) {
-  console.warn("⚠️ Missing Mailjet env vars. Emails will fail.");
-}
+const mailjet = Mailjet.apiConnect(
+  process.env.MAILJET_API_KEY,
+  process.env.MAILJET_SECRET_KEY
+);
 
-// Create transporter with Mailjet SMTP
-const transporter = nodemailer.createTransport({
-  host: "smtp.mailjet.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: MAILJET_API_KEY,
-    pass: MAILJET_SECRET_KEY,
-  },
-});
-
-// Debug SMTP status on startup
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("❌ SMTP ERROR:", error);
-  } else {
-    console.log("✅ SMTP Ready (Mailjet)");
-  }
-});
-
-/**
- * Send email (supports attachments)
- */
 async function sendEmail({ to, subject, html, attachments = [] }) {
-  const mailOptions = {
-    from: EMAIL_FROM,
-    to,
-    subject,
-    html,
-    attachments,
-  };
-
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log("📨 Email sent:", info.messageId);
+    const message = {
+      From: {
+        Email: process.env.EMAIL_FROM, // ex: orders@tadybakingco.ca
+        Name: "Tady Baking Co",
+      },
+      To: [
+        {
+          Email: to,
+        },
+      ],
+      Subject: subject,
+      HTMLPart: html,
+    };
+
+    // Handle attachments
+    if (attachments.length > 0) {
+      message.Attachments = attachments.map((file) => {
+        const fileContent = fs.readFileSync(file.path).toString("base64");
+        return {
+          ContentType: file.contentType || "application/pdf",
+          Filename: file.filename,
+          Base64Content: fileContent,
+        };
+      });
+    }
+
+    const result = await mailjet
+      .post("send", { version: "v3.1" })
+      .request({ Messages: [message] });
+
+    console.log("📨 Mailjet API sent:", result.body);
+
   } catch (err) {
-    console.error("❌ Email sending failed:", err);
+    console.error("❌ Mailjet API failed:", err);
   }
 }
 
