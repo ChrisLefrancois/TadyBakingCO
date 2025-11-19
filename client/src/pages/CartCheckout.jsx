@@ -181,6 +181,10 @@ export default function CheckoutPage({ clientSecret }) {
         return;
       }
 
+      const localISO = new Date(
+        scheduled.getTime() - scheduled.getTimezoneOffset() * 60000
+      ).toISOString().slice(0, 16) + ":00";
+
       // Save order
       const res = await axios.post(
         `${import.meta.env.VITE_API_BASE}/api/orders`,
@@ -205,7 +209,7 @@ export default function CheckoutPage({ clientSecret }) {
           city: form.city,
           province: form.province,
           postalCode: form.postalCode,
-          scheduledFor: scheduled.toISOString(),
+          scheduledFor: localISO,
         }
       );
 
