@@ -10,11 +10,21 @@ if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
 
 // Create transporter once
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,   // IMPORTANT: must be false on Render
   auth: {
     user: GMAIL_USER,
-    pass: GMAIL_APP_PASSWORD, // Gmail App Password ONLY
+    pass: GMAIL_APP_PASSWORD,  // App password ONLY
   },
+});
+
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("❌ SMTP ERROR:", error);
+  } else {
+    console.log("✅ SMTP Ready");
+  }
 });
 
 /**
