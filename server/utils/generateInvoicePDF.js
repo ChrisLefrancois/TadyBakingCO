@@ -177,14 +177,14 @@ async function generateInvoicePDF(order) {
     doc
       .fontSize(11)
       .fillColor(caramel)
-      .text("Thank you for supporting local! 🍪", {
+      .text("Thank you for supporting local Bakery!", {
         align: "center",
       });
 
     doc
       .fontSize(9)
       .fillColor("gray")
-      .text("Tady Baking Co — Montréal & Toronto", { align: "center" });
+      .text("Tady Baking Co — Ajax", { align: "center" });
 
     doc.end();
 

@@ -1,57 +1,45 @@
 // server/utils/sendEmail.js
 const nodemailer = require("nodemailer");
 
-const GMAIL_USER = process.env.GMAIL_USER;
-const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
+const MAILJET_API_KEY = process.env.MAILJET_API_KEY;
+const MAILJET_SECRET_KEY = process.env.MAILJET_SECRET_KEY;
+const EMAIL_FROM = process.env.EMAIL_FROM || "Tady Baking Co <no-reply@example.com>";
 
-if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
-  console.warn("⚠️ Missing Gmail env vars. Emails will fail.");
+if (!MAILJET_API_KEY || !MAILJET_SECRET_KEY) {
+  console.warn("⚠️ Missing Mailjet env vars. Emails will fail.");
 }
 
-// Create transporter once
+// Create transporter with Mailjet SMTP
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
+  host: "in-v3.mailjet.com",
   port: 587,
-  secure: false,   // IMPORTANT: must be false on Render
+  secure: false,
   auth: {
-    user: GMAIL_USER,
-    pass: GMAIL_APP_PASSWORD,  // App password ONLY
+    user: MAILJET_API_KEY,
+    pass: MAILJET_SECRET_KEY,
   },
 });
 
+// Debug SMTP status on startup
 transporter.verify((error, success) => {
   if (error) {
     console.error("❌ SMTP ERROR:", error);
   } else {
-    console.log("✅ SMTP Ready");
+    console.log("✅ SMTP Ready (Mailjet)");
   }
 });
 
 /**
- * Send an email (supports attachments)
- * @param {Object} options
- * @param {string} options.to
- * @param {string} options.subject
- * @param {string} options.html
- * @param {Array}  [options.attachments] - Optional attachments
+ * Send email (supports attachments)
  */
 async function sendEmail({ to, subject, html, attachments = [] }) {
-  if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
-    console.error("❌ Missing Gmail credentials. Email not sent.");
-    return;
-  }
-
   const mailOptions = {
-    from: `"Tady Baking Co" <${GMAIL_USER}>`,
+    from: EMAIL_FROM,
     to,
     subject,
     html,
+    attachments,
   };
-
-  // ✔ Only attach files if provided
-  if (attachments.length > 0) {
-    mailOptions.attachments = attachments;
-  }
 
   try {
     const info = await transporter.sendMail(mailOptions);
