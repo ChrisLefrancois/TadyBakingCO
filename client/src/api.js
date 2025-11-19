@@ -8,4 +8,9 @@ const api = axios.create({
       : "https://tadybakingco.onrender.com"),
 });
 
+api.interceptors.request.use((config) => {
+  config.headers["x-api-key"] = import.meta.env.VITE_ORDER_API_KEY;
+  return config;
+});
+
 export default api;

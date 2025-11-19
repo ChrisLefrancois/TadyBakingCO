@@ -6,7 +6,7 @@ const pricingTierSchema = new mongoose.Schema({
 });
 
 const includedItemSchema = new mongoose.Schema({
-  item: { type: mongoose.Schema.Types.ObjectId, ref: "Item", required: true }, // ✅ reference to an Item
+  item: { type: mongoose.Schema.Types.ObjectId, ref: "Item", required: true },
   quantity: { type: Number, default: 1 },
 });
 
@@ -17,12 +17,18 @@ const itemSchema = new mongoose.Schema({
     default: "single",
   },
 
+  slug: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+
   name: { type: String, required: true },
   description: String,
   imageUrl: String,
   pricingTiers: [pricingTierSchema],
 
-  // ✅ references actual items
+  // Bundle fields
   itemsIncluded: [includedItemSchema],
   bundlePrice: Number,
   bundleSave: Number,

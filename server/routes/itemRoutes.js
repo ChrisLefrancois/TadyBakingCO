@@ -3,9 +3,24 @@ const express = require("express");
 const Item = require("../models/Item.js");
 const router = express.Router();
 
-// ---------------------------
-// GET ALL ITEMS (with populate)
-// ---------------------------
+// -----------------------------------------
+// 🔐 Middleware: Protect Mutating Routes
+// -----------------------------------------
+function verifyApiKey(req, res, next) {
+  const key = req.headers["x-api-key"];
+
+  if (!key || key !== process.env.ITEMS_API_KEY) {
+    return res.status(403).json({ error: "Forbidden: Invalid API key" });
+  }
+
+  next();
+}
+
+// -----------------------------------------
+// ⭐ PUBLIC ROUTES
+// -----------------------------------------
+
+// GET ALL ITEMS
 router.get("/items", async (req, res) => {
   try {
     const items = await Item.find()
@@ -13,7 +28,7 @@ router.get("/items", async (req, res) => {
         path: "itemsIncluded.item",
         select: "name imageUrl pricingTiers",
       })
-      .lean(); // ⚡ more efficient
+      .lean();
 
     res.json(items);
   } catch (err) {
@@ -21,9 +36,7 @@ router.get("/items", async (req, res) => {
   }
 });
 
-// ---------------------------
-// GET BUNDLE ITEMS ONLY
-// ---------------------------
+// GET BUNDLES
 router.get("/items/bundles", async (req, res) => {
   try {
     const bundles = await Item.find({ type: "bundle" })
@@ -39,9 +52,7 @@ router.get("/items/bundles", async (req, res) => {
   }
 });
 
-// ---------------------------
 // GET SINGLE ITEM
-// ---------------------------
 router.get("/items/:id", async (req, res) => {
   try {
     const item = await Item.findById(req.params.id)
@@ -57,10 +68,12 @@ router.get("/items/:id", async (req, res) => {
   }
 });
 
-// ---------------------------
+// -----------------------------------------
+// 🔐 PROTECTED ADMIN ROUTES
+// -----------------------------------------
+
 // CREATE ITEM
-// ---------------------------
-router.post("/create", async (req, res) => {
+router.post("/create", verifyApiKey, async (req, res) => {
   try {
     const newItem = new Item(req.body);
     const savedItem = await newItem.save();
@@ -70,10 +83,8 @@ router.post("/create", async (req, res) => {
   }
 });
 
-// ---------------------------
 // UPDATE ITEM
-// ---------------------------
-router.put("/items/:id", async (req, res) => {
+router.put("/items/:id", verifyApiKey, async (req, res) => {
   try {
     const updatedItem = await Item.findByIdAndUpdate(
       req.params.id,
@@ -88,10 +99,8 @@ router.put("/items/:id", async (req, res) => {
   }
 });
 
-// ---------------------------
 // DELETE ITEM
-// ---------------------------
-router.delete("/items/:id", async (req, res) => {
+router.delete("/items/:id", verifyApiKey, async (req, res) => {
   try {
     const deletedItem = await Item.findByIdAndDelete(req.params.id);
     if (!deletedItem) return res.status(404).json({ error: "Item not found" });

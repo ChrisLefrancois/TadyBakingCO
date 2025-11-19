@@ -2,25 +2,28 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 const Item = require("./models/Item");
+const Order = require("./models/Order");
 
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
+
+
 const seedData = async () => {
   try {
     await Item.deleteMany({});
+    await Order.deleteMany({});
 
     // ----------------------------
-    // INSERT SINGLE ITEMS FIRST
+    // INSERT SINGLE ITEMS
     // ----------------------------
-
     const singleItems = await Item.insertMany([
       {
         type: "single",
-        name: "B.B.C.C ( Brown Butter Choc Chip )",
         slug: "brown-butter-choc-chip",
+        name: "B.B.C.C ( Brown Butter Choc Chip )",
         category: "cookie",
         description: "The OG, Brown butter base + choc chips + flake salts",
         imageUrl:
@@ -33,8 +36,8 @@ const seedData = async () => {
       },
       {
         type: "single",
-        name: "The Toffee Cookie",
         slug: "toffee-cookie",
+        name: "The Toffee Cookie",
         category: "cookie",
         description: "Brown Butter Base + Toffee bits + flakey salt",
         imageUrl:
@@ -47,8 +50,8 @@ const seedData = async () => {
       },
       {
         type: "single",
-        name: "B.B.B.T ( Brown Butter Butter Tart)",
         slug: "brown-butter-tart",
+        name: "B.B.B.T ( Brown Butter Butter Tart)",
         category: "tart",
         description: "Flaky Pastry + maple syrup + brown butter",
         imageUrl:
@@ -61,8 +64,8 @@ const seedData = async () => {
       },
       {
         type: "single",
-        name: "Mini Lemon loaf",
         slug: "lemon-loaf",
+        name: "Mini Lemon loaf",
         category: "loaf",
         description:
           "Fresh lemon juice + buttery cake + lemon icing. Approx. 12cm x 7.5cm",
@@ -77,11 +80,11 @@ const seedData = async () => {
     ]);
 
     // ----------------------------
-    // MAP ITEMS BY SLUG (SAFER!)
+    // MAP ITEMS BY SLUG
     // ----------------------------
     const itemsMap = {};
     singleItems.forEach((item) => {
-      itemsMap[item.slug] = item; // KEY CHANGE HERE 🔐
+      itemsMap[item.slug] = item;
     });
 
     // ----------------------------
@@ -89,15 +92,16 @@ const seedData = async () => {
     // ----------------------------
     await Item.create({
       type: "bundle",
-      name: "Tea Time Bundle",
       slug: "tea-time-bundle",
+      name: "Tea Time Bundle",
       category: "bundle",
       description:
         "1x mini lemon loaf + 2x butter tarts + 4x choc chips + 4x toffee cookies",
       imageUrl:
         "https://res.cloudinary.com/hafh/image/upload/v1760229920/teatime_bundle_popup_tnfvcf.png",
-      bundlePrice: 38.0, // ⚠️ DO NOT USE pricingTiers HERE
-      bundleSave: 4.0, // You can calculate savings on frontend
+
+      bundlePrice: 38.0,
+      bundleSave: 4.0,
 
       itemsIncluded: [
         { item: itemsMap["lemon-loaf"]._id, quantity: 1 },
@@ -107,7 +111,7 @@ const seedData = async () => {
       ],
     });
 
-    console.log("Database seeded successfully");
+    console.log("Database seeded successfully 🎉");
   } catch (err) {
     console.error("❌ Error seeding database:", err);
   } finally {

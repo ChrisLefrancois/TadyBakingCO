@@ -18,7 +18,7 @@ function loadGoogleMaps(apiKey) {
   });
 }
 
-export default function CheckoutPage({ clientSecret }) {
+export default function CheckoutPage() {
   const { cart, clearCart } = useCart();
   const stripe = useStripe();
   const elements = useElements();
@@ -29,8 +29,7 @@ export default function CheckoutPage({ clientSecret }) {
 
   const ALLOWED_CITIES = ["whitby", "ajax", "oshawa", "pickering", "scarborough"];
 
-
-  // ----------- NEW STATES -----------
+  // States
   const [date, setDate] = useState(null);
   const [time, setTime] = useState("");
   const [validationMsg, setValidationMsg] = useState("");
@@ -62,7 +61,7 @@ export default function CheckoutPage({ clientSecret }) {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ---------- GOOGLE AUTOCOMPLETE ----------
+  // Google Autocomplete
   useEffect(() => {
     async function initAutocomplete() {
       await loadGoogleMaps(import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
@@ -86,12 +85,13 @@ export default function CheckoutPage({ clientSecret }) {
         const city =
           comp.find((c) => c.types.includes("locality"))?.long_name || "";
         const province =
-          comp.find((c) => c.types.includes("administrative_area_level_1"))
-            ?.short_name || "";
+          comp.find((c) =>
+            c.types.includes("administrative_area_level_1")
+          )?.short_name || "";
         const postalCode =
           comp.find((c) => c.types.includes("postal_code"))?.long_name || "";
 
-        // 🛑 FRONTEND DELIVERY ZONE VALIDATION
+        // Delivery zone validation
         if (form.fulfillmentMethod === "delivery") {
           const isAllowed = ALLOWED_CITIES.includes(city.toLowerCase());
 
@@ -99,7 +99,7 @@ export default function CheckoutPage({ clientSecret }) {
             alert(
               "❌ Delivery is only available in Ajax, Whitby, Oshawa, Pickering, or Scarborough."
             );
-            // Clear address to force re-entry
+
             setForm((prev) => ({
               ...prev,
               deliveryAddress: "",
@@ -111,7 +111,6 @@ export default function CheckoutPage({ clientSecret }) {
           }
         }
 
-        // If allowed → save normally
         setForm((prev) => ({
           ...prev,
           deliveryAddress: place.formatted_address,
@@ -120,7 +119,6 @@ export default function CheckoutPage({ clientSecret }) {
           postalCode,
         }));
       });
-
     }
 
     if (form.fulfillmentMethod === "delivery") {
@@ -128,11 +126,10 @@ export default function CheckoutPage({ clientSecret }) {
     }
   }, [form.fulfillmentMethod]);
 
-  // ---------- ⏳ DATE LIMITS (24 hours ahead) ----------
+  // Min date (48 hours ahead)
   const minDate = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
-
-  // ---------- 🕑 TIME OPTIONS (10:00 AM – 6:00 PM) ----------
+  // Time options
   const timeOptions = [];
   for (let hour = 10; hour <= 18; hour++) {
     timeOptions.push(
@@ -141,7 +138,7 @@ export default function CheckoutPage({ clientSecret }) {
     );
   }
 
-  // ---------- VALIDATE DATE + TIME BEFORE PAYMENT ----------
+  // Validate date/time
   const validateScheduledFor = () => {
     if (!date || !time) {
       setValidationMsg("Please select both a date and a time.");
@@ -158,8 +155,7 @@ export default function CheckoutPage({ clientSecret }) {
     if (diff < 48 * 60 * 60 * 1000) {
       setValidationMsg("Orders must be scheduled at least 48 hours in advance.");
       return false;
-  }
-
+    }
 
     const hour = scheduled.getHours();
     const minute = scheduled.getMinutes();
@@ -173,11 +169,11 @@ export default function CheckoutPage({ clientSecret }) {
     return scheduled;
   };
 
-  // ---------- SUBMIT ----------
+  // Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 🛑 BLOCK CHECKOUT IF CITY NOT ALLOWED (extra security on frontend)
+    // Block invalid city
     if (form.fulfillmentMethod === "delivery") {
       const isAllowed = ALLOWED_CITIES.includes(form.city.toLowerCase());
       if (!isAllowed) {
@@ -187,7 +183,6 @@ export default function CheckoutPage({ clientSecret }) {
         return;
       }
     }
-
 
     const scheduled = validateScheduledFor();
     if (!scheduled) return;
@@ -217,11 +212,14 @@ export default function CheckoutPage({ clientSecret }) {
         return;
       }
 
+      // Format timestamp for backend
       const localISO = new Date(
         scheduled.getTime() - scheduled.getTimezoneOffset() * 60000
-      ).toISOString().slice(0, 16) + ":00";
+      )
+        .toISOString()
+        .slice(0, 16) + ":00";
 
-      // Save order
+      // POST order (NOW SECURED)
       const res = await axios.post(
         `${import.meta.env.VITE_API_BASE}/api/orders`,
         {
@@ -246,6 +244,11 @@ export default function CheckoutPage({ clientSecret }) {
           province: form.province,
           postalCode: form.postalCode,
           scheduledFor: localISO,
+        },
+        {
+          headers: {
+            "x-api-key": import.meta.env.VITE_ORDER_API_KEY,
+          },
         }
       );
 
@@ -352,7 +355,6 @@ export default function CheckoutPage({ clientSecret }) {
           Available daily from <strong>10:00 AM to 6:00 PM</strong>. Orders must be placed at least <strong>24 hours</strong> in advance.
         </p>
 
-        {/* DATE PICKER */}
         <DatePicker
           selected={date}
           onChange={(dt) => setDate(dt)}
@@ -361,7 +363,6 @@ export default function CheckoutPage({ clientSecret }) {
           className="w-full border border-[#e5cbc7] rounded-lg px-3 py-2"
         />
 
-        {/* TIME SELECT */}
         <select
           value={time}
           onChange={(e) => setTime(e.target.value)}

@@ -13,10 +13,31 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // TAX must match frontend
 const TAX_RATE = 0.13;
 
+// -------------------------------------------
+// SIMPLE API KEY GUARD FOR ORDER ROUTES
+// -------------------------------------------
+const requireOrderApiKey = (req, res, next) => {
+  const configuredKey = process.env.ORDER_API_KEY;
+
+  // If no key configured, don't block (useful for local dev)
+  if (!configuredKey) {
+    return next();
+  }
+
+  const incoming = req.headers["x-api-key"];
+
+  if (!incoming || incoming !== configuredKey) {
+    console.warn("🚫 Unauthorized order API access attempt");
+    return res.status(403).json({ error: "Unauthorized" });
+  }
+
+  next();
+};
+
 // ------------------------------------------------------
 // 1) CREATE PAYMENT INTENT
 // ------------------------------------------------------
-router.post("/create-payment-intent", async (req, res) => {
+router.post("/create-payment-intent",  async (req, res) => {
   try {
     const { items, fulfillmentMethod } = req.body;
 
@@ -54,6 +75,10 @@ router.post("/update-payment-intent", async (req, res) => {
     if (!paymentIntentId)
       return res.status(400).json({ error: "PaymentIntent ID missing." });
 
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: "No items in cart." });
+    }
+
     const subtotal = items.reduce((sum, p) => sum + p.unitPrice * p.qty, 0);
     const tax = Math.round(subtotal * TAX_RATE * 100) / 100;
     const deliveryFee =
@@ -71,12 +96,9 @@ router.post("/update-payment-intent", async (req, res) => {
 });
 
 // ------------------------------------------------------
-// 3) CREATE ORDER
+// 3) CREATE ORDER (SECURED)
 // ------------------------------------------------------
 router.post("/", async (req, res) => {
-
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
   try {
     const {
       items,
@@ -96,10 +118,52 @@ router.post("/", async (req, res) => {
       scheduledFor,
     } = req.body;
 
-    if (!customerName || !customerEmail || !customerPhone)
+    // Basic validation
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: "No items in order." });
+    }
+
+    if (!customerName || !customerEmail || !customerPhone) {
       return res.status(400).json({
         error: "Customer name, email, and phone are required.",
       });
+    }
+
+    if (!stripePaymentIntentId) {
+      return res.status(400).json({ error: "Missing Stripe payment intent ID." });
+    }
+
+    // ---------------------------------------------------
+    // VALIDATE STRIPE PAYMENT INTENT
+    // ---------------------------------------------------
+    let intent;
+    try {
+      intent = await stripe.paymentIntents.retrieve(stripePaymentIntentId);
+    } catch (stripeErr) {
+      console.error("❌ Failed to retrieve PaymentIntent:", stripeErr);
+      return res.status(400).json({ error: "Invalid payment intent." });
+    }
+
+    if (!intent || intent.status !== "succeeded") {
+      console.warn(
+        "🚫 PaymentIntent not successful:",
+        intent && intent.status,
+        stripePaymentIntentId
+      );
+      return res.status(400).json({
+        error: "Payment not completed. Please contact support if you were charged.",
+      });
+    }
+
+    // Optional: verify amount matches
+    const expectedAmount = Math.round(total * 100);
+    if (intent.amount !== expectedAmount) {
+      console.warn(
+        `⚠️ Payment amount mismatch. Stripe: ${intent.amount}, expected: ${expectedAmount}`
+      );
+      // You can choose to reject here if you want it strict:
+      // return res.status(400).json({ error: "Payment amount mismatch." });
+    }
 
     // ---------------------------------------------------
     // VALIDATE SCHEDULED TIME
@@ -119,7 +183,7 @@ router.post("/", async (req, res) => {
 
     if (diffHours < 48) {
       return res.status(400).json({
-        error: "Orders must be placed at least 24 hours in advance.",
+        error: "Orders must be placed at least 48 hours in advance.",
       });
     }
 
@@ -131,6 +195,28 @@ router.post("/", async (req, res) => {
       return res.status(400).json({
         error: "Pickup/delivery time must be between 10:00 AM and 6:00 PM.",
       });
+    }
+
+    // -------------------------------------------
+    // VALIDATE DELIVERY AREA (if delivery)
+    // -------------------------------------------
+    if (fulfillmentMethod === "delivery") {
+      const allowedCities = [
+        "whitby",
+        "ajax",
+        "oshawa",
+        "pickering",
+        "scarborough",
+      ];
+
+      const cityLower = (city || "").toLowerCase().trim();
+
+      if (!allowedCities.includes(cityLower)) {
+        return res.status(400).json({
+          error:
+            "Delivery is only available in Ajax, Whitby, Oshawa, Pickering, or Scarborough.",
+        });
+      }
     }
 
     // ---------------------------------------------------
@@ -154,22 +240,6 @@ router.post("/", async (req, res) => {
       scheduledFor,
       status: "pending",
     });
-
-    // -------------------------------------------
-    // VALIDATE DELIVERY AREA
-    // -------------------------------------------
-    if (fulfillmentMethod === "delivery") {
-      const allowedCities = ["whitby", "ajax", "oshawa", "pickering", "scarborough"];
-
-      const cityLower = (city || "").toLowerCase();
-
-      if (!allowedCities.includes(cityLower)) {
-        return res.status(400).json({
-          error: "Delivery is only available in Ajax, Whitby, Oshawa, Pickering, or Scarborough.",
-        });
-      }
-    }
-
 
     const saved = await order.save();
 
@@ -197,7 +267,6 @@ router.post("/", async (req, res) => {
     // ---------------------------------------------------
     // CUSTOMER EMAIL
     // ---------------------------------------------------
-
     const PICKUP_ADDRESS = "3 Mackeller Ct, Ajax, Ontario L1T 0G2";
 
     const customerHtml = `
@@ -231,7 +300,6 @@ router.post("/", async (req, res) => {
         }
       </div>
     </div>`;
-
 
     // ---------------------------------------------------
     // ADMIN EMAIL
@@ -276,20 +344,20 @@ router.post("/", async (req, res) => {
       console.warn("⚠️ Receipt PDF failed:", error);
     }
 
-
+    // Send emails (non-blocking)
     sendEmail({
       to: customerEmail,
       subject: `Your Tady Baking Co Order (#${saved._id})`,
       html: customerHtml,
       attachments,
-    }).catch(err => console.error("❌ Customer email failed:", err));
+    }).catch((err) => console.error("❌ Customer email failed:", err));
 
     sendEmail({
       to: process.env.ADMIN_EMAIL,
       subject: `🍪 New Order (#${saved._id})`,
       html: adminHtml,
       attachments,
-    }).catch(err => console.error("❌ Admin email failed:", err));
+    }).catch((err) => console.error("❌ Admin email failed:", err));
 
     return res.status(201).json(saved);
   } catch (err) {
@@ -300,13 +368,12 @@ router.post("/", async (req, res) => {
       error: err,
     });
   }
-
 });
 
 // ------------------------------------------------------
 // 4) GET ALL ORDERS
 // ------------------------------------------------------
-router.get("/", async (req, res) => {
+router.get("/", requireOrderApiKey, async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
     res.json(orders);
@@ -320,7 +387,7 @@ router.get("/", async (req, res) => {
 // 4b) DOWNLOAD RECEIPT PDF (Admin)
 // GET /api/orders/:id/receipt
 // ------------------------------------------------------
-router.get("/:id/receipt", async (req, res) => {
+router.get("/:id/receipt", requireOrderApiKey, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ error: "Order not found" });
@@ -356,7 +423,7 @@ router.get("/:id/receipt", async (req, res) => {
 // 5b) RESEND RECEIPT EMAIL (Admin)
 // POST /api/orders/:id/resend-receipt
 // ------------------------------------------------------
-router.post("/:id/resend-receipt", async (req, res) => {
+router.post("/:id/resend-receipt", requireOrderApiKey, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ error: "Order not found" });
@@ -412,8 +479,7 @@ router.post("/:id/resend-receipt", async (req, res) => {
       subject: `Your Tady Baking Co Receipt (Resent)`,
       html,
       attachments,
-    }).catch(err => console.error("❌ Resend receipt failed:", err));
-
+    }).catch((err) => console.error("❌ Resend receipt failed:", err));
 
     res.json({ success: true });
   } catch (err) {
@@ -422,11 +488,10 @@ router.post("/:id/resend-receipt", async (req, res) => {
   }
 });
 
-
 // ------------------------------------------------------
 // 5) UPDATE ORDER STATUS
 // ------------------------------------------------------
-router.put("/:id/status", async (req, res) => {
+router.put("/:id/status", requireOrderApiKey, async (req, res) => {
   try {
     const { status } = req.body;
 
@@ -463,15 +528,18 @@ router.put("/:id/status", async (req, res) => {
 
         const PICKUP_ADDRESS = "3 Mackeller Ct, Ajax, Ontario L1T 0G2";
 
-        const scheduledStr = new Date(order.scheduledFor).toLocaleString("en-CA", {
-          timeZone: "America/Toronto",
-          weekday: "short",
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+        const scheduledStr = new Date(order.scheduledFor).toLocaleString(
+          "en-CA",
+          {
+            timeZone: "America/Toronto",
+            weekday: "short",
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }
+        );
 
         message = `
           <p>Your order is now <strong>ready for pickup!</strong> 🎉</p>
@@ -480,7 +548,6 @@ router.put("/:id/status", async (req, res) => {
           <p>Thank you for supporting Tady Baking Co! 🍪</p>
         `;
       }
-
 
       if (status === "out-for-delivery") {
         subject = `🚚 Your Cookies Are On The Way! (#${order._id})`;
@@ -496,8 +563,7 @@ router.put("/:id/status", async (req, res) => {
         to: order.customerEmail,
         subject,
         html: message,
-      }).catch(err => console.error("❌ Status email failed:", err));
-
+      }).catch((err) => console.error("❌ Status email failed:", err));
     }
 
     res.json(order);
@@ -525,7 +591,7 @@ router.get("/:id", async (req, res) => {
 // ------------------------------------------------------
 // 7) CHECK DELIVERY DISTANCE
 // ------------------------------------------------------
-router.post("/check-distance", async (req, res) => {
+router.post("/check-distance", requireOrderApiKey, async (req, res) => {
   try {
     const { address } = req.body;
 

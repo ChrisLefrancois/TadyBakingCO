@@ -60,9 +60,26 @@ export default function AdminOrderDetail() {
   }
 
   // 🔥 NEW — download receipt
-  function downloadReceipt() {
-    window.open(`${import.meta.env.VITE_API_BASE}/api/orders/${id}/receipt`, "_blank");
+  async function downloadReceipt() {
+    try {
+      const response = await api.get(`/api/orders/${id}/receipt`, {
+        responseType: "blob"
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `receipt_${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+    } catch (err) {
+      console.error("Failed to download receipt:", err);
+      alert("Could not download receipt.");
+    }
   }
+
 
   if (loading) return <p className="text-center mt-10 text-[#4b2e24]">Loading order...</p>;
   if (!order) return <p className="text-center mt-10 text-red-600">Order not found.</p>;

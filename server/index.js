@@ -22,7 +22,8 @@ app.use(
       "https://tadybakingco.ca"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "x-api-key"],
+    credentials: true
   })
 );
 
