@@ -11,7 +11,7 @@ if (!MAILJET_API_KEY || !MAILJET_SECRET_KEY) {
 
 // Create transporter with Mailjet SMTP
 const transporter = nodemailer.createTransport({
-  host: "in-v3.mailjet.com",
+  host: "smtp.mailjet.com",
   port: 587,
   secure: false,
   auth: {
