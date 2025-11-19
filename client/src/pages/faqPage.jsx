@@ -65,7 +65,7 @@ export default function FAQ() {
           </div>
 
           <div>
-            <h3 className="font-lazydog font-bold text-[#806154]">I don’t want salt on my cookies!</h3>
+            <h3 className="font-lazydog font-bold text-[#806154]">I DON'T WANT SALT IN MY COOKIES!</h3>
             <p className="font-theseasons text-[#806154]">
             Not a problem! Let us know in your order notes if you want to omit the flakey salt or if you want half of your order salted etc.
             </p>

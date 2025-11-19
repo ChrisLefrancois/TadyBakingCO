@@ -155,6 +155,22 @@ router.post("/", async (req, res) => {
       status: "pending",
     });
 
+    // -------------------------------------------
+    // VALIDATE DELIVERY AREA
+    // -------------------------------------------
+    if (fulfillmentMethod === "delivery") {
+      const allowedCities = ["whitby", "ajax", "oshawa", "pickering", "scarborough"];
+
+      const cityLower = (city || "").toLowerCase();
+
+      if (!allowedCities.includes(cityLower)) {
+        return res.status(400).json({
+          error: "Delivery is only available in Ajax, Whitby, Oshawa, Pickering, or Scarborough.",
+        });
+      }
+    }
+
+
     const saved = await order.save();
 
     // ---------------------------------------------------

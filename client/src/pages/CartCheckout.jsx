@@ -27,6 +27,9 @@ export default function CheckoutPage({ clientSecret }) {
 
   const [loading, setLoading] = useState(false);
 
+  const ALLOWED_CITIES = ["whitby", "ajax", "oshawa", "pickering", "scarborough"];
+
+
   // ----------- NEW STATES -----------
   const [date, setDate] = useState(null);
   const [time, setTime] = useState("");
@@ -83,12 +86,32 @@ export default function CheckoutPage({ clientSecret }) {
         const city =
           comp.find((c) => c.types.includes("locality"))?.long_name || "";
         const province =
-          comp.find((c) =>
-            c.types.includes("administrative_area_level_1")
-          )?.short_name || "";
+          comp.find((c) => c.types.includes("administrative_area_level_1"))
+            ?.short_name || "";
         const postalCode =
           comp.find((c) => c.types.includes("postal_code"))?.long_name || "";
 
+        // 🛑 FRONTEND DELIVERY ZONE VALIDATION
+        if (form.fulfillmentMethod === "delivery") {
+          const isAllowed = ALLOWED_CITIES.includes(city.toLowerCase());
+
+          if (!isAllowed) {
+            alert(
+              "❌ Delivery is only available in Ajax, Whitby, Oshawa, Pickering, or Scarborough."
+            );
+            // Clear address to force re-entry
+            setForm((prev) => ({
+              ...prev,
+              deliveryAddress: "",
+              city: "",
+              province: "",
+              postalCode: "",
+            }));
+            return;
+          }
+        }
+
+        // If allowed → save normally
         setForm((prev) => ({
           ...prev,
           deliveryAddress: place.formatted_address,
@@ -97,6 +120,7 @@ export default function CheckoutPage({ clientSecret }) {
           postalCode,
         }));
       });
+
     }
 
     if (form.fulfillmentMethod === "delivery") {
@@ -152,6 +176,18 @@ export default function CheckoutPage({ clientSecret }) {
   // ---------- SUBMIT ----------
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // 🛑 BLOCK CHECKOUT IF CITY NOT ALLOWED (extra security on frontend)
+    if (form.fulfillmentMethod === "delivery") {
+      const isAllowed = ALLOWED_CITIES.includes(form.city.toLowerCase());
+      if (!isAllowed) {
+        alert(
+          "❌ Delivery is only available in Ajax, Whitby, Oshawa, Pickering, or Scarborough."
+        );
+        return;
+      }
+    }
+
 
     const scheduled = validateScheduledFor();
     if (!scheduled) return;
