@@ -261,20 +261,19 @@ router.post("/", async (req, res) => {
     }
 
 
-    await sendEmail({
+    sendEmail({
       to: customerEmail,
       subject: `Your Tady Baking Co Order (#${saved._id})`,
       html: customerHtml,
-      attachments, // ⚠️ only added if exists
-    });
+      attachments,
+    }).catch(err => console.error("❌ Customer email failed:", err));
 
-
-    await sendEmail({
+    sendEmail({
       to: process.env.ADMIN_EMAIL,
       subject: `🍪 New Order (#${saved._id})`,
       html: adminHtml,
       attachments,
-    });
+    }).catch(err => console.error("❌ Admin email failed:", err));
 
     return res.status(201).json(saved);
   } catch (err) {
@@ -392,12 +391,13 @@ router.post("/:id/resend-receipt", async (req, res) => {
       <ul>${itemsList}</ul>
     `;
 
-    await sendEmail({
+    sendEmail({
       to: order.customerEmail,
       subject: `Your Tady Baking Co Receipt (Resent)`,
       html,
       attachments,
-    });
+    }).catch(err => console.error("❌ Resend receipt failed:", err));
+
 
     res.json({ success: true });
   } catch (err) {
@@ -476,11 +476,12 @@ router.put("/:id/status", async (req, res) => {
         message = `<p>Your order has been cancelled.</p>`;
       }
 
-      await sendEmail({
+      sendEmail({
         to: order.customerEmail,
         subject,
         html: message,
-      });
+      }).catch(err => console.error("❌ Status email failed:", err));
+
     }
 
     res.json(order);
