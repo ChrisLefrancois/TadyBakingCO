@@ -1,16 +1,30 @@
 // src/pages/AdminOrderDetail.jsx
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import api from "../api";
 
 export default function AdminOrderDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
   // Cancel modal
   const [confirmCancel, setConfirmCancel] = useState(false);
+
+  // -------------------------------
+  // 🔐 AUTH GUARD — Redirect if no token
+  // -------------------------------
+  useEffect(() => {
+    const token = localStorage.getItem("tady_admin_token");
+
+    if (!token) {
+      navigate("/admin/login");
+      return;
+    }
+  }, [navigate]);
 
   const badgeClasses = {
     pending: "bg-yellow-200 text-yellow-700 border border-yellow-400 shadow-sm",
@@ -28,42 +42,59 @@ export default function AdminOrderDetail() {
         setOrder(res.data);
       } catch (err) {
         console.error("Failed to load order:", err);
+
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          alert("Your session expired. Please log in again.");
+          localStorage.removeItem("tady_admin_token");
+          navigate("/admin/login");
+        }
       } finally {
         setLoading(false);
       }
     }
     fetchOrder();
-  }, [id]);
+  }, [id, navigate]);
 
   async function updateStatus(newStatus) {
     try {
       setUpdating(true);
       await api.put(`/api/orders/${id}/status`, { status: newStatus });
+
       setOrder((prev) => ({ ...prev, status: newStatus }));
     } catch (err) {
       console.error("Failed to update status:", err);
-      alert("Could not update status");
+
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        alert("You are not authorized. Please log in again.");
+        navigate("/admin/login");
+      } else {
+        alert("Could not update status.");
+      }
     } finally {
       setUpdating(false);
     }
   }
 
-  // 🔥 NEW — resend receipt function
   async function resendReceipt() {
     try {
       await api.post(`/api/orders/${id}/resend-receipt`);
       alert("Receipt emailed to customer!");
     } catch (err) {
       console.error("Failed to resend receipt:", err);
-      alert("Could not resend receipt.");
+
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        alert("Session expired — please log in again.");
+        navigate("/admin/login");
+      } else {
+        alert("Could not resend receipt.");
+      }
     }
   }
 
-  // 🔥 NEW — download receipt
   async function downloadReceipt() {
     try {
       const response = await api.get(`/api/orders/${id}/receipt`, {
-        responseType: "blob"
+        responseType: "blob",
       });
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -73,13 +104,17 @@ export default function AdminOrderDetail() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
     } catch (err) {
       console.error("Failed to download receipt:", err);
-      alert("Could not download receipt.");
+
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        alert("Your session expired. Please log in again.");
+        navigate("/admin/login");
+      } else {
+        alert("Could not download receipt.");
+      }
     }
   }
-
 
   if (loading) return <p className="text-center mt-10 text-[#4b2e24]">Loading order...</p>;
   if (!order) return <p className="text-center mt-10 text-red-600">Order not found.</p>;
@@ -225,13 +260,15 @@ export default function AdminOrderDetail() {
         <div className="border-t border-[#e5cbc7] pt-4 space-y-1 text-right font-petitcochon">
           <p>Subtotal: ${order.subtotal.toFixed(2)}</p>
           <p>Tax: ${order.tax.toFixed(2)}</p>
-          {order.deliveryFee > 0 && <p>Delivery: ${order.deliveryFee.toFixed(2)}</p>}
+          {order.deliveryFee > 0 && (
+            <p>Delivery: ${order.deliveryFee.toFixed(2)}</p>
+          )}
           <p className="text-2xl font-bold text-[#4b2e24]">
             Total: ${order.total.toFixed(2)}
           </p>
         </div>
 
-        {/* 🔥 NEW RECEIPT BUTTONS */}
+        {/* RECEIPT BUTTONS */}
         <div className="mt-8 flex flex-col items-center gap-4">
 
           <button

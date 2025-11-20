@@ -10,6 +10,8 @@ const generateInvoicePDF = require("../utils/generateInvoicePDF");
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+const requireAdminAuth = require("../middleware/requireAdminAuth");
+
 // TAX must match frontend
 const TAX_RATE = 0.13;
 
@@ -373,7 +375,7 @@ router.post("/", async (req, res) => {
 // ------------------------------------------------------
 // 4) GET ALL ORDERS
 // ------------------------------------------------------
-router.get("/", requireOrderApiKey, async (req, res) => {
+router.get("/", requireOrderApiKey, requireAdminAuth, async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
     res.json(orders);
@@ -423,7 +425,7 @@ router.get("/:id/receipt", requireOrderApiKey, async (req, res) => {
 // 5b) RESEND RECEIPT EMAIL (Admin)
 // POST /api/orders/:id/resend-receipt
 // ------------------------------------------------------
-router.post("/:id/resend-receipt", requireOrderApiKey, async (req, res) => {
+router.post("/:id/resend-receipt", requireOrderApiKey, requireAdminAuth, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ error: "Order not found" });
@@ -491,7 +493,7 @@ router.post("/:id/resend-receipt", requireOrderApiKey, async (req, res) => {
 // ------------------------------------------------------
 // 5) UPDATE ORDER STATUS
 // ------------------------------------------------------
-router.put("/:id/status", requireOrderApiKey, async (req, res) => {
+router.put("/:id/status", requireOrderApiKey, requireAdminAuth, async (req, res) => {
   try {
     const { status } = req.body;
 
@@ -591,7 +593,7 @@ router.get("/:id", async (req, res) => {
 // ------------------------------------------------------
 // 7) CHECK DELIVERY DISTANCE
 // ------------------------------------------------------
-router.post("/check-distance", requireOrderApiKey, async (req, res) => {
+router.post("/check-distance", requireOrderApiKey, requireAdminAuth, async (req, res) => {
   try {
     const { address } = req.body;
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../api";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
@@ -12,6 +12,20 @@ export default function AdminOrders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [updatingId, setUpdatingId] = useState(null);
+
+  const navigate = useNavigate();
+
+  // -------------------------------
+  // 🔐 AUTH GUARD — Redirect if no token
+  // -------------------------------
+  useEffect(() => {
+    const token = localStorage.getItem("tady_admin_token");
+
+    if (!token) {
+      navigate("/admin/login");
+      return;
+    }
+  }, [navigate]);
 
   useEffect(() => {
     async function fetchOrders() {
