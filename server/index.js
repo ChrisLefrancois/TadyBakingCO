@@ -56,7 +56,11 @@ console.log(
 // ✅ MONGO CONNECTION + START SERVER
 // ----------------------------------------
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI;
+
+const MONGO_URI =
+  process.env.NODE_ENV === "production"
+    ? process.env.MONGO_URI_PROD
+    : process.env.MONGO_URI_DEV;
 
 if (!MONGO_URI) {
   console.error("❌ Missing MONGO_URI in environment variables");
