@@ -5,7 +5,7 @@ const Item = require("./models/Item");
 const Order = require("./models/Order");
 
 mongoose
-  .connect(process.env.MONGO_URI_DEV)
+  .connect(process.env.MONGO_URI_PROD)
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
