@@ -144,7 +144,7 @@ export default function ItemModal({ item, onClose }) {
         )}
 
         <p className="mt-6 text-xs text-[#5b3c2f]">
-          Note: Made in a kitchen with common allergens.
+        Please note that all our bakery products contain Milk, Eggs, and Flour and are made  in a shared kitchen that may include other allergens.
         </p>
       </div>
     </div>
