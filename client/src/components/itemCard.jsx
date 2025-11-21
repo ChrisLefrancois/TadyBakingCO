@@ -70,7 +70,7 @@ const ItemCard = ({ name, description, image, onAddToBag }) => {
           transition
         "
       >
-        VIEW PRICES
+        VIEW
       </p>
     </div>
   );

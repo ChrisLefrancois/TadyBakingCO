@@ -84,14 +84,32 @@ useEffect(() => {
         </div>
 
         {/* Cloud links (About / FAQ / Contacts) */}
-        <div className="w-full flex flex-wrap justify-center gap-6 mt-6 px-2">
-          {["about", "faq", "contact"].map((page) => (
-            <Link
+        {/* Cloud links (About / FAQ / Contacts) */}
+        <div className="w-full flex flex-wrap justify-center  gap-6  mt-6 px-2">
+
+        <div className="hidden md:flex w-full justify-between max-w-3xl">
+        {["about", "faq", "contact"].map((page) => {
+          const label = page.toUpperCase();
+
+          let linkProps = {};
+
+          if (page === "contact") {
+            // Scroll to footer
+            linkProps = { href: "#contact-section", as: "a" };
+          } else {
+            // ABOUT + FAQ → /faq
+            linkProps = { to: "/faq", as: Link };
+          }
+
+          const Tag = linkProps.as || Link;
+
+          return (
+            <Tag
               key={page}
-              to={`/${page}`}
-              className="relative w-32 h-16 flex items-center justify-center
-                text-[#806154] font-petitcochon font-bold transition
-                hover:scale-105"
+              {...linkProps}
+              className="relative w-40 h-24 flex items-center justify-center
+                text-[#806154] font-petitcochon font-bold text-xl
+                transition hover:scale-110 cursor-pointer"
               style={{
                 backgroundImage: "url('/images/tbc cloud bubble.png')",
                 backgroundSize: "contain",
@@ -99,10 +117,53 @@ useEffect(() => {
                 backgroundPosition: "center",
               }}
             >
-              {page.toUpperCase()}
-            </Link>
-          ))}
+              {label}
+            </Tag>
+          );
+        })}
+      </div>
+
+
+        {/* Mobile version (unchanged) */}
+        <div className="md:hidden flex flex-wrap justify-center gap-6 w-full">
+        {["about", "faq", "contact"].map((page) => {
+          const label = page.toUpperCase();
+
+          // Determine link behavior
+          let linkProps = {};
+
+          if (page === "contact") {
+            // Scroll to footer
+            linkProps = { href: "#contact-section", as: "a" };
+          } else {
+            // Both ABOUT and FAQ go to /faq
+            linkProps = { to: "/faq", as: Link };
+          }
+
+          const Tag = linkProps.as || Link;
+
+          return (
+            <Tag
+              key={page}
+              {...linkProps}
+              className="relative w-32 h-16 flex items-center justify-center
+                text-[#806154] font-petitcochon font-bold transition hover:scale-105"
+              style={{
+                backgroundImage: "url('/images/tbc cloud bubble.png')",
+                backgroundSize: "contain",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center",
+              }}
+            >
+              {label}
+            </Tag>
+          );
+        })}
         </div>
+
+
+        </div>
+
       </div>
 
       {/* Cookie icons bar */}

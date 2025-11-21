@@ -3,7 +3,7 @@ import { Mail, Instagram } from "lucide-react";
 
 export default function Footer() {
   return (
-    <div className="bg-[#fbf1e5] text-[#4b2e24] py-8 text-center mt-5">
+    <div id="contact-section" className="bg-[#fbf1e5] text-[#4b2e24] py-8 text-center mt-5">
       {/* Contact Us Button */}
       <button
         className="relative w-48 h-16 flex items-center justify-center text-[#806154] font-petitcochon font-bold text-lg transition hover:scale-105 mx-auto"
