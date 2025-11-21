@@ -43,6 +43,7 @@ export default function CheckoutPage() {
     city: "",
     province: "",
     postalCode: "",
+    note: ""
   });
 
   // Totals
@@ -243,6 +244,7 @@ export default function CheckoutPage() {
           city: form.city,
           province: form.province,
           postalCode: form.postalCode,
+          note: form.note,
           scheduledFor: localISO,
         },
         {
@@ -306,6 +308,17 @@ export default function CheckoutPage() {
           required
           className="w-full border border-[#e5cbc7] rounded-lg px-3 py-2"
         />
+
+        <textarea
+          type="text"
+          name="note"
+          placeholder="Note"
+          value={form.note}
+          onChange={handleChange}
+          className="w-full border border-[#e5cbc7] rounded-lg px-3 py-2"
+        />
+
+
       </div>
 
       {/* Pickup / Delivery */}
@@ -346,13 +359,15 @@ export default function CheckoutPage() {
         )}
       </div>
 
+
+
       {/* Date / Time */}
       <div className="space-y-2">
         <p className="text-sm text-[#4b2e24] font-semibold">
           Choose pickup time:
         </p>
         <p className="text-xs text-[#4b2e24]">
-          Available daily from <strong>10:00 AM to 6:00 PM</strong>. Orders must be placed at least <strong>24 hours</strong> in advance.
+          Available daily from <strong>10:00 AM to 6:00 PM</strong>. Orders must be placed at least <strong>48 hours</strong> in advance.
         </p>
 
         <DatePicker

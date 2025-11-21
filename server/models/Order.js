@@ -25,6 +25,7 @@ const OrderSchema = new mongoose.Schema(
     city: String,
     province: String,
     postalCode: String,
+    note: String,
 
     scheduledFor: {
       type: Date,

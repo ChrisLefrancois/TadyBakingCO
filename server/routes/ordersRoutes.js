@@ -118,6 +118,7 @@ router.post("/", async (req, res) => {
       province,
       postalCode,
       scheduledFor,
+      note,
     } = req.body;
 
     // Basic validation
@@ -241,6 +242,7 @@ router.post("/", async (req, res) => {
       postalCode,
       scheduledFor,
       status: "pending",
+      note,
     });
 
     const saved = await order.save();
@@ -284,6 +286,7 @@ router.post("/", async (req, res) => {
           <p><strong>Total:</strong> $${total.toFixed(2)}</p>
           <p><strong>Method:</strong> ${fulfillmentMethod}</p>
           <p><strong>Scheduled For:</strong> ${scheduledStr}</p>
+          <p><strong>Note:</strong> ${note}</p>
 
           ${
             fulfillmentMethod === "delivery"
@@ -315,6 +318,7 @@ router.post("/", async (req, res) => {
   <p><strong>Total:</strong> $${total.toFixed(2)}</p>
   <p><strong>Scheduled For:</strong> ${scheduledStr}</p>
   <p><strong>Method:</strong> ${fulfillmentMethod}</p>
+  <p><strong>Note:</strong> ${note}</p>
 
   ${
     fulfillmentMethod === "delivery"

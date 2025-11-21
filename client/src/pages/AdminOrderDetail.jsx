@@ -224,6 +224,7 @@ export default function AdminOrderDetail() {
           <p>{order.customerName}</p>
           <p className="text-sm text-[#806154]">{order.customerEmail}</p>
           <p className="text-sm">{order.customerPhone}</p>
+          <p className="font-bold">Note: {order.note}</p>
         </div>
 
         {/* FULFILLMENT */}
