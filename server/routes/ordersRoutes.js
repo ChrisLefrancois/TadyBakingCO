@@ -48,9 +48,11 @@ router.post("/create-payment-intent",  async (req, res) => {
     }
 
     const subtotal = items.reduce((sum, p) => sum + p.unitPrice * p.qty, 0);
-    const tax = Math.round(subtotal * TAX_RATE * 100) / 100;
     const deliveryFee =
       fulfillmentMethod === "delivery" && subtotal < 45 ? 5.99 : 0;
+
+    const tax = Math.round((subtotal + deliveryFee) * TAX_RATE * 100) / 100;
+
 
     const total = Math.round((subtotal + tax + deliveryFee) * 100) / 100;
 
@@ -82,9 +84,10 @@ router.post("/update-payment-intent", async (req, res) => {
     }
 
     const subtotal = items.reduce((sum, p) => sum + p.unitPrice * p.qty, 0);
-    const tax = Math.round(subtotal * TAX_RATE * 100) / 100;
     const deliveryFee =
       fulfillmentMethod === "delivery" && subtotal < 45 ? 5.99 : 0;
+
+    const tax = Math.round((subtotal + deliveryFee) * TAX_RATE * 100) / 100;
 
     const total = Math.round((subtotal + tax + deliveryFee) * 100);
 

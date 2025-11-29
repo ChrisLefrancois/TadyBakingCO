@@ -1,26 +1,4 @@
-@font-face {
-  font-family: Petitcochon;
-  src: url('/fonts/petitcochon.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
 
-@font-face {
-  font-family: Lazygod;
-  src: url('/fonts/lazydog.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: TheSeasons;
-  src: url('/fonts/Theseasons.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
 
 /* ribbon/banner for SAVE label */
 .save-banner {
@@ -84,7 +62,22 @@
 @import "tailwindcss";
 
 
-@theme{
-  --font-petitcochon: Petitcochon, "sans-serif";
-  --font-lazydog: Lazydog, "sans-serfif";
+
+.font-theseasons {
+  font-family: "PT Serif", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.font-petitcochon {
+  font-family: "Chewy", system-ui;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.font-lazydog {
+  font-family: "Caveat", cursive;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
 }

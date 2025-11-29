@@ -48,14 +48,24 @@ export default function CheckoutPage() {
 
   // Totals
   const TAX_RATE = 0.13;
+
   const subtotal = cart.reduce(
     (sum, p) => sum + (p.totalPrice || p.unitPrice * p.qty),
     0
   );
+
+  // Delivery fee
   const deliveryFee =
-    form.fulfillmentMethod === "delivery" ? (subtotal < 45 ? 5.99 : 0) : 0;
-  const tax = Math.round(subtotal * TAX_RATE * 100) / 100;
-  const total = Math.round((subtotal + tax + deliveryFee) * 100) / 100;
+    form.fulfillmentMethod === "delivery"
+      ? (subtotal < 45 ? 5.99 : 0)
+      : 0;
+
+  // ⬅️ NEW: Tax is applied to BOTH subtotal + delivery fee
+  const tax = Math.round((subtotal + deliveryFee) * TAX_RATE * 100) / 100;
+
+  // New total including taxed shipping
+  const total = Math.round((subtotal + deliveryFee + tax) * 100) / 100;
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
