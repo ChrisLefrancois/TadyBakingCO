@@ -28,7 +28,7 @@ export default function AdminNavbar() {
           </Link>
 
           <Link
-            to="/items"
+            to="admin/items"
             className="text-[#4b2e24] font-medium hover:text-[#b67c5a]"
           >
             Menu Items
