@@ -7,6 +7,7 @@ const cors = require("cors");
 
 const itemRoutes = require("./routes/itemRoutes.js");
 const orderRoutes = require("./routes/ordersRoutes.js");
+const blackoutRoutes = require("./routes/blackoutRoutes.js");
 const adminRoutes = require("./routes/adminAuth.js"); // <-- make sure you import this
 
 const app = express();
@@ -41,6 +42,7 @@ app.use(express.json());
 // ----------------------------------------
 app.use("/api/items", itemRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/blackout", blackoutRoutes);
 app.use("/api/admin", adminRoutes);  // <-- REQUIRED for login to work
 
 

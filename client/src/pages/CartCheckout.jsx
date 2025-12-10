@@ -27,6 +27,9 @@ export default function CheckoutPage() {
 
   const [loading, setLoading] = useState(false);
 
+  const [blockedDates, setBlockedDates] = useState([]);
+
+
   const ALLOWED_CITIES = ["whitby", "ajax", "oshawa", "pickering", "scarborough"];
 
   // States
@@ -74,6 +77,21 @@ export default function CheckoutPage() {
 
   // Google Autocomplete
   useEffect(() => {
+
+    async function loadBlockedDates() {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE}/api/blackout`
+        );
+
+        // backend sends [{ date: "2025-01-15", reason: "Holiday" }, ...]
+        setBlockedDates(res.data.map((d) => d.date));
+      } catch (err) {
+        console.error("Failed to load blocked dates:", err);
+      }
+    }
+
+    loadBlockedDates();
     async function initAutocomplete() {
       await loadGoogleMaps(import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
 
@@ -384,9 +402,18 @@ export default function CheckoutPage() {
           selected={date}
           onChange={(dt) => setDate(dt)}
           minDate={minDate}
+          filterDate={(d) => {
+            const iso = d.toISOString().slice(0, 10);
+
+            // block admin blackout dates
+            if (blockedDates.includes(iso)) return false;
+
+            return true;
+          }}
           dateFormat="yyyy-MM-dd"
           className="w-full border border-[#e5cbc7] rounded-lg px-3 py-2"
         />
+
 
         <select
           value={time}

@@ -18,6 +18,7 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminItems from "./pages/admin/AdminItems";
 import AdminNewItem from "./pages/admin/AdminNewItem";
 import AdminEditItem from "./pages/admin/AdminEditItem";
+import AdminBlackout from "./pages/admin/AdminBlackout";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
@@ -49,6 +50,7 @@ function AppContent() {
         <Route path="/admin/items" element={<AdminItems />} />
         <Route path="/admin/items/:id/edit" element={<AdminEditItem />} />
         <Route path="/admin/items/new" element={<AdminNewItem />} />
+        <Route path="/admin/blackout" element={<AdminBlackout />} />
 
 
         <Route path="/order-confirmation/:id" element={<OrderConfirmation />} />

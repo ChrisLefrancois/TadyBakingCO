@@ -34,6 +34,11 @@ export default function AdminNavbar() {
             Menu Items
           </Link>
 
+          <Link to="/admin/blackout" className="text-white font-semibold hover:underline">
+            Blackout Dates
+          </Link>
+
+
           <button
             onClick={handleLogout}
             className="bg-[#b67c5a] text-white px-4 py-2 rounded-full hover:bg-[#a06a4f] transition"

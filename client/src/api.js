@@ -14,6 +14,7 @@ const protectedItemRoutes = [
   "/api/items/create",
   "/api/items/items" // <-- IMPORTANT: do NOT include trailing slash
 ];
+const protectedBlackoutRoutes = ["/api/blackout"];
 
 api.interceptors.request.use((config) => {
   // 🔐 Admin JWT
@@ -30,6 +31,11 @@ api.interceptors.request.use((config) => {
   // 🔐 Item API key (CREATE, UPDATE, DELETE)
   if (protectedItemRoutes.some((r) => config.url.startsWith(r))) {
     config.headers["x-api-key"] = import.meta.env.VITE_ITEMS_API_KEY;
+  }
+
+   // 🔐 Blackout routes API key
+   if (protectedBlackoutRoutes.some((r) => config.url.startsWith(r))) {
+    config.headers["x-api-key"] = import.meta.env.VITE_BLACKOUT_API_KEY;
   }
 
   return config;
