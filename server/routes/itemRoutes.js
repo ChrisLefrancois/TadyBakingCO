@@ -1,6 +1,6 @@
 const express = require("express");
 const Item = require("../models/Item.js");
-const upload = require("../middleware/upload"); // ⬅️ NEW
+const upload = require("../middleware/Upload.js"); // ⬅️ NEW
 const router = express.Router();
 
 router.use((req, res, next) => {
