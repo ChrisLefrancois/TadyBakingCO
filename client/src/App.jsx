@@ -15,6 +15,9 @@ import OrderConfirmation from "./pages/OrderConfirmation.jsx";
 import AdminOrders from "./pages/AdminOrders.jsx";
 import AdminOrderDetail from "./pages/AdminOrderDetail";
 import AdminLogin from "./pages/AdminLogin";
+import AdminItems from "./pages/admin/AdminItems";
+import AdminNewItem from "./pages/admin/AdminNewItem";
+import AdminEditItem from "./pages/admin/AdminEditItem";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
@@ -43,6 +46,10 @@ function AppContent() {
         <Route path="/admin/orders" element={<AdminOrders />} />
         <Route path="/admin/orders/:id" element={<AdminOrderDetail />} />
         <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/items" element={<AdminItems />} />
+        <Route path="/admin/items/:id/edit" element={<AdminEditItem />} />
+        <Route path="/admin/items/new" element={<AdminNewItem />} />
+
 
         <Route path="/order-confirmation/:id" element={<OrderConfirmation />} />
       </Routes>

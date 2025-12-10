@@ -42,12 +42,8 @@ const addToCart = (item, qty, unitPrice, totalPrice) => {
 };
 
 // Remove a specific pack type
-const removeFromCart = (id, unitPrice) => {
-  setCart((prev) =>
-    prev.filter(
-      (p) => !(p.item._id === id && p.unitPrice === unitPrice)
-    )
-  );
+const removeFromCart = (id) => {
+  setCart(prev => prev.filter(p => p.item._id !== id));
 };
 
 

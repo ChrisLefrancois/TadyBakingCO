@@ -12,15 +12,9 @@ const includedItemSchema = new mongoose.Schema({
 
 const itemSchema = new mongoose.Schema({
   type: {
-    type: String,
-    enum: ["single", "bundle"],
-    default: "single",
-  },
-
-  slug: {
-    type: String,
-    required: true,
-    unique: true,
+     type: String,
+     enum: ["single", "bundle"],
+     default: "single",
   },
 
   name: { type: String, required: true },

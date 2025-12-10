@@ -8,26 +8,28 @@ const api = axios.create({
       : "https://tadybakingco.onrender.com"),
 });
 
-// Protect only admin order routes with API key
-const protectedApiKeyRoutes = [
-  "/api/orders",               // GET all orders
-  "/api/orders/",              // matches /api/orders/:id, /status etc.
+// Protected admin routes
+const protectedOrderRoutes = ["/api/orders"];
+const protectedItemRoutes = [
+  "/api/items/create",
+  "/api/items/items" // <-- IMPORTANT: do NOT include trailing slash
 ];
 
 api.interceptors.request.use((config) => {
-  // Attach JWT admin token if present
+  // 🔐 Admin JWT
   const token = localStorage.getItem("tady_admin_token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  // Attach API key ONLY to protected order routes
-  const needsApiKey = protectedApiKeyRoutes.some((route) =>
-    config.url.startsWith(route)
-  );
-
-  if (needsApiKey) {
+  // 🔐 Order API key
+  if (protectedOrderRoutes.some((r) => config.url.startsWith(r))) {
     config.headers["x-api-key"] = import.meta.env.VITE_ORDER_API_KEY;
+  }
+
+  // 🔐 Item API key (CREATE, UPDATE, DELETE)
+  if (protectedItemRoutes.some((r) => config.url.startsWith(r))) {
+    config.headers["x-api-key"] = import.meta.env.VITE_ITEMS_API_KEY;
   }
 
   return config;

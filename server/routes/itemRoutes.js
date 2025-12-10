@@ -1,7 +1,13 @@
-// backend/routes/items.js
 const express = require("express");
 const Item = require("../models/Item.js");
+const upload = require("../middleware/upload"); // ⬅️ NEW
 const router = express.Router();
+
+router.use((req, res, next) => {
+  console.log("📥 ITEMS ROUTE HIT:", req.method, req.originalUrl);
+  next();
+});
+
 
 // -----------------------------------------
 // 🔐 Middleware: Protect Mutating Routes
@@ -36,7 +42,7 @@ router.get("/items", async (req, res) => {
   }
 });
 
-// GET BUNDLES
+// GET ALL BUNDLES
 router.get("/items/bundles", async (req, res) => {
   try {
     const bundles = await Item.find({ type: "bundle" })
@@ -72,32 +78,78 @@ router.get("/items/:id", async (req, res) => {
 // 🔐 PROTECTED ADMIN ROUTES
 // -----------------------------------------
 
-// CREATE ITEM
-router.post("/create", verifyApiKey, async (req, res) => {
-  try {
-    const newItem = new Item(req.body);
-    const savedItem = await newItem.save();
-    res.status(201).json(savedItem);
-  } catch (err) {
-    res.status(500).json({ error: "Internal server error" });
+// CREATE ITEM (image upload + JSON fields)
+router.post(
+  "/create",
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      console.log("🔥 Creating item:", req.body);
+
+      // Parse JSON fields
+      const pricingTiers = JSON.parse(req.body.pricingTiers || "[]");
+      const itemsIncluded = JSON.parse(req.body.itemsIncluded || "[]");
+
+      // Build item object
+      const newItemData = {
+        type: req.body.type,
+        name: req.body.name,
+        description: req.body.description,
+        pricingTiers,
+        itemsIncluded,
+        bundlePrice: req.body.bundlePrice || null,
+        bundleSave: req.body.bundleSave || null,
+        imageUrl: req.file ? req.file.path : null,  // ⭐ CLOUDINARY URL
+      };
+
+      console.log("📝 Final item object:", newItemData);
+
+      const savedItem = await Item.create(newItemData);
+      console.log("✅ Item saved", savedItem._id);
+
+      res.status(201).json(savedItem);
+
+    } catch (err) {
+      console.error("❌ CREATE ITEM ERROR:", err);
+      res.status(500).json({ error: "Failed to save item", details: err.message });
+    }
   }
-});
+);
+
+
+
+
 
 // UPDATE ITEM
-router.put("/items/:id", verifyApiKey, async (req, res) => {
+router.put("/items/:id", verifyApiKey, upload.single("image"), async (req, res) => {
   try {
-    const updatedItem = await Item.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const body = req.body;
 
-    if (!updatedItem) return res.status(404).json({ error: "Item not found" });
+    // Parse JSON fields
+    if (body.pricingTiers) body.pricingTiers = JSON.parse(body.pricingTiers);
+    if (body.itemsIncluded) body.itemsIncluded = JSON.parse(body.itemsIncluded);
+
+    // New file? override imageUrl
+    if (req.file) {
+      body.imageUrl = req.file.path;
+    }
+
+    const updatedItem = await Item.findByIdAndUpdate(req.params.id, body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedItem) {
+      return res.status(404).json({ error: "Item not found" });
+    }
+
     res.json(updatedItem);
   } catch (err) {
-    res.status(400).json({ error: "Bad request", details: err.message });
+    console.error("❌ Update Item Error:", err);
+    res.status(400).json({ error: "Failed to update item", details: err.message });
   }
 });
+
 
 // DELETE ITEM
 router.delete("/items/:id", verifyApiKey, async (req, res) => {

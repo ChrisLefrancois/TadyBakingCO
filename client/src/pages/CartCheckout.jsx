@@ -19,7 +19,7 @@ function loadGoogleMaps(apiKey) {
 }
 
 export default function CheckoutPage() {
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, removeFromCart } = useCart();
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
@@ -405,6 +405,77 @@ export default function CheckoutPage() {
           <p className="text-red-600 text-sm">{validationMsg}</p>
         )}
       </div>
+
+      {/* --- PRICE BREAKDOWN SECTION --- */}
+      <div className="border rounded-2xl p-4 bg-[#fbf1e5] text-[#4b2e24] space-y-4">
+
+      <h3 className="text-lg font-bold">Order Summary</h3>
+
+      {/* Items */}
+      {cart.map((p) => (
+        <div
+          key={p.item._id}
+          className="flex justify-between items-center border-b pb-2"
+        >
+          <div>
+            <p className="font-semibold">
+              {p.qty} × {p.item.name}
+            </p>
+            <p className="text-sm opacity-70">
+              ${(p.totalPrice || p.unitPrice * p.qty).toFixed(2)}
+            </p>
+          </div>
+
+          {/* DELETE ITEM BUTTON */}
+          <button
+            type="button"
+            className="text-red-600 font-bold text-xl hover:scale-110 transition"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              removeFromCart(p.item._id, p.unitPrice);
+            }}
+          >
+            ×
+          </button>
+
+        </div>
+      ))}
+
+      {/* Subtotal */}
+      <div className="flex justify-between text-md">
+        <span>Subtotal</span>
+        <span>${subtotal.toFixed(2)}</span>
+      </div>
+
+      {/* Delivery fee */}
+      <div className="flex justify-between text-md">
+        <span>Delivery</span>
+        <span>
+          {form.fulfillmentMethod === "delivery"
+            ? deliveryFee === 0
+              ? "Free"
+              : `$${deliveryFee.toFixed(2)}`
+            : "$0.00"}
+        </span>
+      </div>
+
+      {/* Taxes */}
+      <div className="flex justify-between text-md">
+        <span>Tax (13%)</span>
+        <span>${tax.toFixed(2)}</span>
+      </div>
+
+      <hr />
+
+      {/* TOTAL */}
+      <div className="flex justify-between text-xl font-bold">
+        <span>Total</span>
+        <span>${total.toFixed(2)}</span>
+      </div>
+      </div>
+
+
 
       <PaymentElement className="mt-6" />
 
