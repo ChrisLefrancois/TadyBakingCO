@@ -42,10 +42,39 @@ const addToCart = (item, qty, unitPrice, totalPrice) => {
 };
 
 // Remove a specific pack type
-const removeFromCart = (id) => {
-  setCart(prev => prev.filter(p => p.item._id !== id));
-};
+const removeFromCart = (itemId, qtyToRemove = 1) => {
+  setCart((prev) => {
+    let remainingToRemove = qtyToRemove;
 
+    const updatedCart = prev
+      .map((p) => {
+        if (p.item._id !== itemId) return p;
+        if (remainingToRemove <= 0) return p;
+
+        const currentQty = p.qty || 0;
+
+        if (currentQty <= remainingToRemove) {
+          remainingToRemove -= currentQty;
+          return null;
+        }
+
+        const newQty = currentQty - remainingToRemove;
+        remainingToRemove = 0;
+
+        return {
+          ...p,
+          qty: newQty,
+          totalPrice:
+            typeof p.unitPrice === "number"
+              ? p.unitPrice * newQty
+              : p.totalPrice,
+        };
+      })
+      .filter(Boolean);
+
+    return updatedCart;
+  });
+};
 
   // Empty the cart
   const clearCart = () => setCart([]);

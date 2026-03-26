@@ -6,6 +6,7 @@ import { useCart } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { buildPricingLines } from "../utils/pricing";
 
 function loadGoogleMaps(apiKey) {
   return new Promise((resolve) => {
@@ -49,24 +50,55 @@ export default function CheckoutPage() {
     note: ""
   });
 
-  // Totals
   const TAX_RATE = 0.13;
 
-  const subtotal = cart.reduce(
-    (sum, p) => sum + (p.totalPrice || p.unitPrice * p.qty),
+  // Pricing display lines (ex: 7 loaf => 4 + 2 + 1)
+  const pricingLines = buildPricingLines(cart);
+
+  // Group by product only for tax logic
+  const taxGroups = Object.values(
+    cart.reduce((acc, p) => {
+      const key = p.item._id;
+      const lineTotal =
+        typeof p.totalPrice === "number"
+          ? p.totalPrice
+          : (p.unitPrice || 0) * (p.qty || 0);
+
+      if (!acc[key]) {
+        acc[key] = {
+          item: p.item,
+          qty: 0,
+          totalPrice: 0,
+        };
+      }
+
+      acc[key].qty += p.qty || 0;
+      acc[key].totalPrice += lineTotal;
+
+      return acc;
+    }, {})
+  );
+
+  const subtotal = pricingLines.reduce(
+    (sum, p) => sum + (p.totalPrice || 0),
     0
   );
 
-  // Delivery fee
+  // Tax-free when total qty for that product is 6+
+  const taxableItemsSubtotal = taxGroups.reduce((sum, p) => {
+    return p.qty >= 6 ? sum : sum + p.totalPrice;
+  }, 0);
+
   const deliveryFee =
     form.fulfillmentMethod === "delivery"
-      ? (subtotal < 45 ? 5.99 : 0)
+      ? subtotal < 45
+        ? 5.99
+        : 0
       : 0;
 
-  // ⬅️ NEW: Tax is applied to BOTH subtotal + delivery fee
-  const tax = Math.round((subtotal + deliveryFee) * TAX_RATE * 100) / 100;
+  const tax =
+    Math.round((taxableItemsSubtotal + deliveryFee) * TAX_RATE * 100) / 100;
 
-  // New total including taxed shipping
   const total = Math.round((subtotal + deliveryFee + tax) * 100) / 100;
 
 
@@ -252,7 +284,7 @@ export default function CheckoutPage() {
       const res = await axios.post(
         `${import.meta.env.VITE_API_BASE}/api/orders`,
         {
-          items: cart.map((p) => ({
+          items: pricingLines.map((p) => ({
             itemId: p.item._id,
             name: p.item.name,
             qty: p.qty,
@@ -439,9 +471,9 @@ export default function CheckoutPage() {
       <h3 className="text-lg font-bold">Order Summary</h3>
 
       {/* Items */}
-      {cart.map((p) => (
+      {pricingLines.map((p, index) => (
         <div
-          key={p.item._id}
+          key={`${p.item._id}-${p.tierQuantity}-${index}`}
           className="flex justify-between items-center border-b pb-2"
         >
           <div>
@@ -449,23 +481,21 @@ export default function CheckoutPage() {
               {p.qty} × {p.item.name}
             </p>
             <p className="text-sm opacity-70">
-              ${(p.totalPrice || p.unitPrice * p.qty).toFixed(2)}
+              ${p.totalPrice.toFixed(2)}
             </p>
           </div>
 
-          {/* DELETE ITEM BUTTON */}
           <button
             type="button"
             className="text-red-600 font-bold text-xl hover:scale-110 transition"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              removeFromCart(p.item._id, p.unitPrice);
+              removeFromCart(p.item._id, p.qty);
             }}
           >
             ×
           </button>
-
         </div>
       ))}
 

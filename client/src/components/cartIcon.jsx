@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ShoppingBag, Trash2 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { buildPricingLines } from "../utils/pricing";
 
 export default function CartIcon() {
   const { cart, totalItems, totalPrice, removeFromCart } = useCart();
@@ -9,18 +10,19 @@ export default function CartIcon() {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  // 🧠 Close dropdown when clicking outside
+  const pricingLines = buildPricingLines(cart);
+
   useEffect(() => {
     function handleClickOutside(e) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setOpen(false);
       }
     }
+
     if (open) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
-  // 🧾 Handle navigation to cart (so dropdown closes cleanly)
   const handleViewCart = () => {
     setOpen(false);
     navigate("/cart");
@@ -28,7 +30,6 @@ export default function CartIcon() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* 🛍 Main Icon */}
       <button
         onClick={() => setOpen((prev) => !prev)}
         className="relative inline-flex items-center justify-center p-2 rounded-full hover:scale-110 transition"
@@ -42,7 +43,6 @@ export default function CartIcon() {
         )}
       </button>
 
-      {/* 🧈 Dropdown (animated) */}
       <div
         className={`absolute right-0 mt-3 z-[9999] w-72 transform transition-all duration-300 ease-out ${
           open
@@ -57,38 +57,32 @@ export default function CartIcon() {
             </h3>
 
             <div className="max-h-52 overflow-y-auto">
-              {cart.map((p, i) => {
-                const safeUnit =
-                  typeof p.unitPrice === "number" ? p.unitPrice : 0;
-                const safeTotal =
-                  typeof p.totalPrice === "number"
-                    ? p.totalPrice
-                    : safeUnit * (p.qty || 1);
-
-                return (
-                  <div
-                    key={i}
-                    className="flex justify-between items-center py-2 border-b border-[#e5cbc7] last:border-none"
-                  >
-                    <div className="text-sm text-[#4b2e24]">
-                      <p className="font-bold">{p.item.name}</p>
-                      <p>
-                        {p.qty} × ${safeUnit.toFixed(2)}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => removeFromCart(p.item._id, p.unitPrice)}
-                      className="text-[#b67c5a] hover:text-[#7c4a3a] transition"
-                      aria-label="Remove item"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+              {pricingLines.map((p, index) => (
+                <div
+                  key={`${p.item._id}-${p.tierQuantity}-${index}`}
+                  className="flex justify-between items-center py-2 border-b border-[#e5cbc7] last:border-none"
+                >
+                  <div className="text-sm text-[#4b2e24]">
+                    <p className="font-bold">{p.item.name}</p>
+                    <p>
+                      {p.qty} × ${p.unitPrice.toFixed(2)}
+                    </p>
+                    <p className="text-xs opacity-70">
+                      ${p.totalPrice.toFixed(2)}
+                    </p>
                   </div>
-                );
-              })}
+
+                  <button
+                    onClick={() => removeFromCart(p.item._id, p.qty)}
+                    className="text-[#b67c5a] hover:text-[#7c4a3a] transition"
+                    aria-label="Remove item"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
             </div>
 
-            {/* Total + Link */}
             <div className="mt-3 border-t border-[#e5cbc7] pt-2 text-right">
               <p className="text-sm text-[#4b2e24] font-semibold">
                 Total: ${(totalPrice || 0).toFixed(2)}
