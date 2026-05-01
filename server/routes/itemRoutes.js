@@ -81,6 +81,7 @@ router.get("/items/:id", async (req, res) => {
 // CREATE ITEM (image upload + JSON fields)
 router.post(
   "/create",
+  verifyApiKey,
   upload.single("image"),
   async (req, res) => {
     try {
