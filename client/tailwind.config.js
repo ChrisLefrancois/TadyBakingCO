@@ -8,6 +8,7 @@ export default {
     extend: {
       fontFamily: {
         theseasons: ["'Dancing Script'", "cursive"],
+        petitcochon: ["font-petitcochon", "sans-serif"],
       },
     },
   },

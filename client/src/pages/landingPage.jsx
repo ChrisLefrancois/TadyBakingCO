@@ -10,29 +10,14 @@ export default function LandingPage() {
   const [error, setError] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
 
-  // Fetch first 2 products
- // Fetch 2 items on mobile, 3 on desktop
-useEffect(() => {
-  function fetchItemsBasedOnScreen() {
-    const isMobile = window.innerWidth < 768; // md breakpoint
-    const limit = isMobile ? 2 : 3;
-
+  // Fetch ALL products
+  useEffect(() => {
     api.get("/api/items/items")
       .then((res) => {
-        setProducts(res.data.slice(0, limit)); // return only required #
+        setProducts(res.data);
       })
       .catch(() => setError("Failed to fetch items."));
-  }
-
-  // Fetch immediately
-  fetchItemsBasedOnScreen();
-
-  // Also fetch again if the user resizes to desktop/mobile
-  window.addEventListener("resize", fetchItemsBasedOnScreen);
-
-  return () => window.removeEventListener("resize", fetchItemsBasedOnScreen);
-}, []);
-
+  }, []);
 
   return (
     <div className="bg-[#fbf1e5] min-h-screen flex flex-col items-center">
@@ -40,7 +25,7 @@ useEffect(() => {
       {/* Top section spacing */}
       <div className="mt-6 w-full max-w-6xl px-6">
 
-        {/* Desktop layout: three-column top bar */}
+        {/* Desktop layout */}
         <div className="hidden md:flex justify-between items-center w-full mb-6">
           <p className="font-petitcochon font-bold text-[#7c4a3a] text-xl">
             FRESH COOKIES?!?!
@@ -55,7 +40,7 @@ useEffect(() => {
           </p>
         </div>
 
-        {/* Mobile stacked layout */}
+        {/* Mobile layout */}
         <div className="md:hidden w-full flex justify-between items-start px-1">
           <p className="font-petitcochon font-bold text-[#7c4a3a] text-lg">
             FRESH COOKIES?!?!
@@ -83,90 +68,92 @@ useEffect(() => {
           </Link>
         </div>
 
-        {/* Cloud links (About / FAQ / Contacts) */}
-        {/* Cloud links (About / FAQ / Contacts) */}
-        <div className="w-full flex flex-wrap justify-center  gap-6  mt-6 px-2">
+        {/* Cloud links */}
+        <div className="w-full flex flex-wrap justify-center gap-6 mt-6 px-2">
 
-        <div className="hidden md:flex w-full justify-between max-w-3xl">
-        {["about", "faq", "contact"].map((page) => {
-          const label = page.toUpperCase();
+          {/* Desktop */}
+          <div className="hidden md:flex w-full justify-between max-w-3xl">
+            {["aboutus", "faq", "contact"].map((page) => {
+              const label =
+                page === "aboutus"
+                  ? "ABOUT US"
+                  : page.toUpperCase();
 
-          let linkProps = {};
+              let linkProps = {};
 
-          if (page === "contact") {
-            // Scroll to footer
-            linkProps = { href: "#contact-section", as: "a" };
-          } else {
-            // ABOUT + FAQ → /faq
-            linkProps = { to: "/faq", as: Link };
-          }
+              if (page === "contact") {
+                linkProps = { href: "#contact-section", as: "a" };
+              } else if (page === "aboutus") {
+                linkProps = { to: "/aboutus", as: Link };
+              } else {
+                linkProps = { to: "/faq", as: Link };
+              }
 
-          const Tag = linkProps.as || Link;
+              const Tag = linkProps.as || Link;
 
-          return (
-            <Tag
-              key={page}
-              {...linkProps}
-              className="relative w-40 h-24 flex items-center justify-center
-                text-[#806154] font-petitcochon font-bold text-xl
-                transition hover:scale-110 cursor-pointer"
-              style={{
-                backgroundImage: "url('/images/tbc cloud bubble.png')",
-                backgroundSize: "contain",
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "center",
-              }}
-            >
-              {label}
-            </Tag>
-          );
-        })}
+              return (
+                <Tag
+                  key={page}
+                  {...linkProps}
+                  className="relative w-40 h-24 flex items-center justify-center
+                    text-[#806154] font-petitcochon font-bold text-xl
+                    transition hover:scale-110 cursor-pointer"
+                  style={{
+                    backgroundImage: "url('/images/tbc cloud bubble.png')",
+                    backgroundSize: "contain",
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "center",
+                  }}
+                >
+                  {label}
+                </Tag>
+              );
+            })}
+          </div>
+
+          {/* Mobile */}
+          <div className="md:hidden flex flex-wrap justify-center gap-6 w-full">
+            {["aboutus", "faq", "contact"].map((page) => {
+              const label =
+                page === "aboutus"
+                  ? "ABOUT US"
+                  : page.toUpperCase();
+
+              let linkProps = {};
+
+              if (page === "contact") {
+                linkProps = { href: "#contact-section", as: "a" };
+              } else if (page === "aboutus") {
+                linkProps = { to: "/aboutus", as: Link };
+              } else {
+                linkProps = { to: "/faq", as: Link };
+              }
+
+              const Tag = linkProps.as || Link;
+
+              return (
+                <Tag
+                  key={page}
+                  {...linkProps}
+                  className="relative w-32 h-16 flex items-center justify-center
+                    text-[#806154] font-petitcochon font-bold transition hover:scale-105"
+                  style={{
+                    backgroundImage: "url('/images/tbc cloud bubble.png')",
+                    backgroundSize: "contain",
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "center",
+                  }}
+                >
+                  {label}
+                </Tag>
+              );
+            })}
+          </div>
+
+        </div>
       </div>
 
-
-        {/* Mobile version (unchanged) */}
-        <div className="md:hidden flex flex-wrap justify-center gap-6 w-full">
-        {["about", "faq", "contact"].map((page) => {
-          const label = page.toUpperCase();
-
-          // Determine link behavior
-          let linkProps = {};
-
-          if (page === "contact") {
-            // Scroll to footer
-            linkProps = { href: "#contact-section", as: "a" };
-          } else {
-            // Both ABOUT and FAQ go to /faq
-            linkProps = { to: "/faq", as: Link };
-          }
-
-          const Tag = linkProps.as || Link;
-
-          return (
-            <Tag
-              key={page}
-              {...linkProps}
-              className="relative w-32 h-16 flex items-center justify-center
-                text-[#806154] font-petitcochon font-bold transition hover:scale-105"
-              style={{
-                backgroundImage: "url('/images/tbc cloud bubble.png')",
-                backgroundSize: "contain",
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "center",
-              }}
-            >
-              {label}
-            </Tag>
-          );
-        })}
-        </div>
-
-
-        </div>
-
-      </div>
-
-      {/* Cookie icons bar */}
+      {/* Cookie bar */}
       <div className="bg-[#b67c5a] w-full overflow-hidden py-4 px-6 flex items-center justify-between shadow-inner mt-8">
         {Array(6)
           .fill("/images/logo.png")
@@ -182,7 +169,7 @@ useEffect(() => {
           ))}
       </div>
 
-      {/* Bubble button - matching About/FAQ/Contact */}
+      {/* All Products button */}
       <div className="mt-10 mb-8 flex justify-center w-full">
         <Link
           to="/items"
@@ -201,7 +188,6 @@ useEffect(() => {
         </Link>
       </div>
 
-
       {/* Featured Products */}
       <div className="w-full max-w-5xl grid grid-cols-1 sm:grid-cols-3 gap-12 justify-items-center mt-4 px-4">
         {products.map((item) => (
@@ -217,7 +203,10 @@ useEffect(() => {
 
       {/* Modal */}
       {selectedItem && (
-        <ItemModal item={selectedItem} onClose={() => setSelectedItem(null)} />
+        <ItemModal
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
       )}
 
     </div>

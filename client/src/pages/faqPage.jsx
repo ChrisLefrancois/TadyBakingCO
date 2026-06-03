@@ -4,20 +4,6 @@ export default function FAQ() {
   return (
     <div className="bg-[#fcefe6] min-h-screen flex flex-col items-center px-6 py-8">
 
-      {/* ABOUT US Section */}
-      <SectionBubble title="ABOUT US">
-      <p className="font-lazydog text-[#7a5a47] text-sm md:text-base mb-10">
-        Est. 2025 • Bringing you the most delicious cookies and butter tarts in Ajax!
-      </p>
-      <p className="font-theseasons text-[#5b3c2f]">
-      Tady (Legally known as Teddy) is just a very well loved family dog with owners who like baking and is the inspiration for bringing this small business alive!
-      </p>
-      <br></br>
-      <p className="font-theseasons text-[#5b3c2f]">
-      We aim to serve you with products that hit just right
-      </p>
-      </SectionBubble>
-
       {/* FAQ Section */}
       <SectionBubble title="FAQ">
         <div className="space-y-6 text-left">

@@ -3,11 +3,13 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
 import "./App.css";
+import "./index.css";
 import Navbar from "./components/Navbar";
 import AdminNavbar from "./components/AdminNavbar";
 import Footer from "./components/Footer";
 import Landing from "./pages/landingPage";
 import FAQ from "./pages/faqPage";
+import AboutUs from "./pages/AboutUs";
 import Items from "./pages/itemsPage";
 import CartPages from "./pages/CartCheckout";
 import CheckoutWrapper from "./pages/CheckoutWrapper";
@@ -41,6 +43,7 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/faq" element={<FAQ />} />
+        <Route path="/aboutus" element={<AboutUs />} />
         <Route path="/items" element={<Items />} />
         <Route path="/cart" element={<CheckoutWrapper />} />
 

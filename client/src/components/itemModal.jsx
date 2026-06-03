@@ -102,7 +102,7 @@ export default function ItemModal({ item, onClose }) {
 
           <div className="text-left">
             {item.description && (
-              <p className="text-sm font-theseasons mb-3">{item.description}</p>
+              <p className="text-sm font-theseasons mb-3" style={{ whiteSpace: "pre-line" }}>{item.description}</p>
             )}
 
             {/* Bundle includes list */}
