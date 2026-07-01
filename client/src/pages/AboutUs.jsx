@@ -4,8 +4,16 @@ export default function FAQ() {
   return (
     <div className="bg-[#fcefe6] min-h-screen flex flex-col items-center px-6 py-8">
 
+
       {/* ABOUT US Section */}
       <SectionBubble title="ABOUT US">
+
+      <img
+        src="/images/aboutus.jpg"
+        alt="About Us"
+        className="w-full max-w-md mx-auto mb-6 rounded-xl shadow-md"
+      />
+
 
         <p className="font-theseasons text-[#7a5a47] text-sm md:text-base mb-6">
           Thank you for finding us! Our little bakery aims to bring good things to your day!
@@ -13,15 +21,15 @@ export default function FAQ() {
         </p>
 
         {/* TEDDY */}
-        <h2 className="font-lazydog text-[#5b3c2f] text-lg font-semibold mb-1">
+        <h2 className="font-lazydog text-[#5b3c2f] text-lg font-semibold mb-1 text-left">
           TEDDY (TADY)
         </h2>
 
-        <p className="font-theseasons text-[#7a5a47] mb-1">
+        <p className="font-theseasons text-[#7a5a47] mb-1 text-left">
           (Certified Treat Officer)
         </p>
 
-        <div className="font-theseasons text-[#7a5a47] mb-6 space-y-1">
+        <div className="font-theseasons text-[#7a5a47] mb-6 space-y-1 text-left">
           <p>- Shih-Tzu - Poodle</p>
           <p>- Adopted from Ottawa 8 years ago</p>
           <p>- only likes expensive apples and yogurt</p>
@@ -30,15 +38,15 @@ export default function FAQ() {
         </div>
 
         {/* ANNA */}
-        <h2 className="font-lazydog  text-[#5b3c2f] text-lg font-semibold mb-1">
+        <h2 className="font-lazydog  text-[#5b3c2f] text-lg font-semibold mb-1 text-right">
           ANNA
         </h2>
 
-        <p className="font-theseasons text-[#7a5a47] mb-1">
+        <p className="font-theseasons text-[#7a5a47] mb-1 text-right">
           (Baker, Artist, Co-owner, Tady’s favourite)
         </p>
 
-        <div className="font-theseasons text-[#7a5a47] mb-6 space-y-3">
+        <div className="font-theseasons text-[#7a5a47] mb-6 space-y-3 text-right">
           <p>Hi! I’m Anna</p>
 
           <p>
@@ -67,15 +75,15 @@ export default function FAQ() {
         </div>
 
         {/* MAIN */}
-        <h2 className="font-lazydog  text-[#5b3c2f] text-lg font-semibold mb-1">
+        <h2 className="font-lazydog  text-[#5b3c2f] text-lg font-semibold mb-1 text-left">
           MAIN
         </h2>
 
-        <p className="font-theseasons text-[#7a5a47] mb-1">
+        <p className="font-theseasons text-[#7a5a47] mb-1 text-left">
           (Dishwasher, Logistics, Co-owner, Tady's spare human)
         </p>
 
-        <div className="font-theseasons text-[#7a5a47] space-y-3">
+        <div className="font-theseasons text-[#7a5a47] space-y-3 text-left">
           <p>Hello I'm Main!</p>
 
           <p>
@@ -95,11 +103,7 @@ export default function FAQ() {
 
       </SectionBubble>
 
-      <img
-        src="/images/aboutus.jpg"
-        alt="About Us"
-        className="w-full max-w-md mx-auto mb-6 rounded-xl shadow-md"
-      />
+
           </div>
   );
 }

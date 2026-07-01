@@ -184,7 +184,7 @@ export default function LandingPage() {
             backgroundPosition: "center",
           }}
         >
-          All Our Products
+          ALL OUR PRODUCTS
         </Link>
       </div>
 

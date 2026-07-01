@@ -20,7 +20,7 @@ export default function Footer() {
 
       {/* Phone */}
       <p className="font-petitcochon mt-4 text-xl font-bold">
-        CALL/TEXT: <span className="font-extrabold">(365) 800-6867</span>
+        CALL/TEXT: <span className="font-extrabold">(905) 955-6456</span>
       </p>
 
       {/* Email & Instagram */}
